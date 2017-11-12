@@ -215,6 +215,7 @@ namespace SB3Utility
 		if (allBones || boneNames->Contains(nodeName))
 		{
 			FbxSkeleton* pJoint = FbxSkeleton::Create(pSdkManager, "");
+			pJoint->Size.Set((double)boneSize);
 			pJoint->SetSkeletonType(FbxSkeleton::eLimbNode);
 			pNode->SetNodeAttribute(pJoint);
 		}
@@ -671,7 +672,7 @@ namespace SB3Utility
 			int resampleCount = 0;
 			if (startKeyframe >= 0)
 			{
-				interpolationHelper = gcnew InterpolationHelper(pScene, lAnimLayer, linear ? FbxAnimCurveDef::eInterpolationLinear : FbxAnimCurveDef::eInterpolationCubic, &scale, &rotate, &translate);
+				interpolationHelper = gcnew InterpolationHelper(pScene, lAnimLayer, linear ? FbxAnimCurveDef::eInterpolationLinear : FbxAnimCurveDef::eInterpolationCubic, false, 0, &scale, &rotate, &translate);
 				for (int j = 0; j < pAnimationList->Count; j++)
 				{
 					int numKeyframes = pAnimationList[j]->KeyframeList[pAnimationList[j]->KeyframeList->Count - 1]->Index + 1;

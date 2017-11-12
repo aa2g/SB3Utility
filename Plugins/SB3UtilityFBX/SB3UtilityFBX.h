@@ -36,7 +36,7 @@ namespace SB3Utility {
 		static Quaternion EulerToQuaternion(Vector3 v);
 		static void InterpolateKeyframes(List<Tuple<ImportedAnimationTrack^, array<xaAnimationKeyframe^>^>^>^ extendedTrackList, int resampleCount);
 		static void InterpolateKeyframes(List<Tuple<ImportedAnimationTrack^, array<ImportedAnimationKeyframe^>^>^>^ extendedTrackList, int resampleCount, bool linear);
-		static void InterpolateSampledTracks(List<Tuple<ImportedAnimationTrack^, ImportedAnimationSampledTrack^>^>^ extendedTrackList, int resampleCount, bool linear);
+		static void InterpolateSampledTracks(List<Tuple<ImportedAnimationTrack^, ImportedAnimationSampledTrack^>^>^ extendedTrackList, int resampleCount, bool linear, bool EulerFilter, float filterPrecision);
 
 		ref class Importer : IImported
 		{
@@ -48,7 +48,7 @@ namespace SB3Utility {
 			virtual property List<ImportedAnimation^>^ AnimationList;
 			virtual property List<ImportedMorph^>^ MorphList;
 
-			Importer(String^ path, bool negateQuaternionFlips);
+			Importer(String^ path, bool negateQuaternionFlips, bool forceTypeSampled);
 
 		private:
 			FbxArray<FbxSurfacePhong*>* pMaterials;
@@ -61,20 +61,28 @@ namespace SB3Utility {
 			FbxImporter* pImporter;
 
 			bool negateQuaternionFlips;
+			bool forceTypeSampled;
 			bool generatingTangentsReported;
 
 			void ImportNode(ImportedFrame^ parent, FbxNode* pNode);
 			ImportedFrame^ ImportFrame(ImportedFrame^ parent, FbxNode* pNode);
 			void ImportMesh(ImportedFrame^ parent, FbxArray<FbxNode*>* pMeshArray);
+			static int CompareSubmeshes(ImportedSubmesh^ a, ImportedSubmesh^ b);
 			ImportedMaterial^ ImportMaterial(FbxMesh* pMesh);
-			String^ ImportTexture(FbxFileTexture* pTexture);
+			String^ ImportTexture(FbxFileTexture* pTexture, [Out] Vector2% offset, [Out] Vector2% scale);
 			void ImportAnimation();
 			void ImportAnimation(FbxAnimLayer* pAnimLayer, FbxNode* pNode, ImportedKeyframedAnimation^ wsAnimation);
 			void ImportAnimation(FbxAnimLayer* pAnimLayer, FbxNode* pNode, ImportedSampledAnimation^ wsAnimation);
+			FbxTime LastKeyframeTime(FbxAnimCurve* curveX, FbxAnimCurve* curveY, FbxAnimCurve* curveZ);
+			array<bool>^ CurvesToArrays(FbxAnimCurve* curveX, FbxAnimCurve* curveY, FbxAnimCurve* curveZ, float initX, float initY, float initZ, int length, array<float>^& xArr, array<float>^& yArr, array<float>^& zArr);
+			array<float>^ CurveToArray(FbxAnimCurve* curve, float initialValue, array<bool>^ usedKeyframe, array<FbxLongLong>^ keyframeTime);
+			static int CompareSampledTracks(ImportedAnimationSampledTrack^ st1, ImportedAnimationSampledTrack^ st2);
 			Type^ GetAnimationType(FbxAnimLayer* pAnimLayer, FbxNode* pNode);
 			template <class T> void GetVector(FbxLayerElementTemplate<T>* pLayerElement, T& pVector, int controlPointIdx, int vertexIdx);
-			FbxColor Fbx::Importer::GetFBXColor(FbxMesh *pMesh, int polyIndex, int polyPointIndex);
+			FbxColor GetFBXColor(FbxMesh *pMesh, int polyIndex, int polyPointIndex);
 			void ImportMorph(FbxArray<FbxNode*>* pMeshArray);
+			static bool Fbx::Importer::FlatInbetween(FbxBlendShape* pBlendShape);
+			static int CompareMorphs(ImportedMorphKeyframe^ kf1, ImportedMorphKeyframe^ kf2);
 
 			ref class Vertex
 			{
@@ -86,6 +94,7 @@ namespace SB3Utility {
 				List<Byte>^ boneIndices;
 				List<float>^ weights;
 				array<float>^ tangent;
+				array<double>^ color;
 
 				bool Equals(Vertex^ vertex);
 
@@ -99,8 +108,8 @@ namespace SB3Utility {
 			static void Export(String^ path, xxParser^ xxParser, List<xxFrame^>^ meshParents, List<xaParser^>^ xaSubfileList, int startKeyframe, int endKeyframe, bool linear, bool EulerFilter, float filterPrecision, String^ exportFormat, bool allFrames, bool skins, bool embedMedia, bool compatibility);
 			static void ExportMorph(String^ path, xxParser^ xxParser, xxFrame^ meshFrame, xaMorphClip^ morphClip, xaParser^ xaparser, String^ exportFormat, bool oneBlendShape, bool embedMedia, bool compatibility);
 
-			static void Export(String^ path, IImported^ imported, int startKeyframe, int endKeyframe, bool linear, bool EulerFilter, float filterPrecision, String^ exportFormat, bool allFrames, bool allBones, bool skins, bool compatibility);
-			static void ExportMorph(String^ path, IImported^ imported, String^ exportFormat, bool oneBlendShape, bool compatibility);
+			static void Export(String^ path, IImported^ imported, int startKeyframe, int endKeyframe, bool linear, bool EulerFilter, float filterPrecision, String^ exportFormat, bool allFrames, bool allBones, bool skins, float boneSize, bool flatInbetween, bool compatibility);
+			static void ExportMorph(String^ path, IImported^ imported, String^ exportFormat, bool morphMask, bool flatInbetween, bool skins, float boneSize, bool compatibility);
 
 		private:
 			HashSet<String^>^ frameNames;
@@ -110,6 +119,7 @@ namespace SB3Utility {
 			float filterPrecision;
 			bool exportSkins;
 			bool embedMedia;
+			float boneSize;
 			xxParser^ xxparser;
 
 			IImported^ imported;
@@ -129,24 +139,26 @@ namespace SB3Utility {
 			void ExportFrame(FbxNode* pParentNode, xxFrame^ frame);
 			void ExportMesh(FbxNode* pFrameNode, xxFrame^ frame);
 			FbxFileTexture* ExportTexture(xxMaterialTexture^ matTex, FbxLayerElementTexture*& pLayerTexture, FbxMesh* pMesh);
+			void Fbx::Exporter::LinkTexture(ImportedMaterial^ mat, int attIndex, FbxFileTexture* pTexture, FbxProperty& prop);
 			void ExportAnimations(List<xaParser^>^ xaSubfileList, int startKeyframe, int endKeyframe, bool linear, bool EulerFilter, float filterPrecision);
 			void SetJoints();
 			void SetJointsNode(FbxNode* pNode, HashSet<String^>^ boneNames, bool allBones);
 			void ExportMorphs(xxFrame^ baseFrame, xaMorphClip^ morphClip, xaParser^ xaparser, bool oneBlendShape);
 
-			Exporter(String^ path, IImported^ imported, String^ exportFormat, bool allFrames, bool allBones, bool skins, bool compatibility);
+			Exporter(String^ path, IImported^ imported, String^ exportFormat, bool allFrames, bool allBones, bool skins, float boneSize, bool compatibility, bool normals);
 			HashSet<String^>^ SearchHierarchy();
 			void SearchHierarchy(ImportedFrame^ frame, HashSet<String^>^ exportFrames);
 			void SetJointsFromImportedMeshes(bool allBones);
+			String^ GetTransformPath(FbxNode* meshNode);
 			void ExportFrame(FbxNode* pParentNode, ImportedFrame^ frame);
-			void ExportMesh(FbxNode* pFrameNode, ImportedMesh^ meshList);
-			FbxFileTexture* ExportTexture(ImportedTexture^ matTex, FbxLayerElementTexture*& pTextureLayer, FbxMesh* pMesh);
-			void ExportAnimations(int startKeyframe, int endKeyframe, bool linear, bool EulerFilter, float filterValue);
+			void ExportMesh(FbxNode* pFrameNode, ImportedMesh^ meshList, bool normals);
+			FbxFileTexture* ExportTexture(ImportedTexture^ matTex, FbxMesh* pMesh);
+			void ExportAnimations(int startKeyframe, int endKeyframe, bool linear, bool EulerFilter, float filterValue, bool flatInbetween);
 			void ExportKeyframedAnimation(ImportedKeyframedAnimation^ parser, FbxString& kTakeName, int startKeyframe, int endKeyframe, bool linear, FbxAnimCurveFilterUnroll* EulerFilter, float filterPrecision,
 					FbxPropertyT<FbxDouble3>& scale, FbxPropertyT<FbxDouble4>& rotate, FbxPropertyT<FbxDouble3>& translate, List<String^>^ pNotFound);
-			void ExportSampledAnimation(ImportedSampledAnimation^ parser, FbxString& kTakeName, int startKeyframe, int endKeyframe, bool linear, FbxAnimCurveFilterUnroll* EulerFilter, float filterPrecision,
+			void ExportSampledAnimation(ImportedSampledAnimation^ parser, FbxString& kTakeName, int startKeyframe, int endKeyframe, bool linear, FbxAnimCurveFilterUnroll* EulerFilter, float filterPrecision, bool flatInbetween,
 					FbxPropertyT<FbxDouble3>& scale, FbxPropertyT<FbxDouble4>& rotate, FbxPropertyT<FbxDouble3>& translate, List<String^>^ pNotFound);
-			void ExportMorphs(IImported^ imported, bool oneBlendShape);
+			void ExportMorphs(IImported^ imported, bool morphMask, bool flatInbetween);
 		};
 
 	private:
@@ -158,6 +170,8 @@ namespace SB3Utility {
 			FbxAnimEvaluator* pAnimEvaluator;
 
 			FbxAnimCurveDef::EInterpolationType interpolationMethod;
+			FbxAnimCurveFilterUnroll* lFilter;
+			float filterPrecision;
 
 			FbxPropertyT<FbxDouble3>* scale, * translate;
 			FbxPropertyT<FbxDouble4>* rotate;
@@ -172,7 +186,8 @@ namespace SB3Utility {
 			static const char* pRotateName = "Rotate";
 			static const char* pTranslateName = "Translate";
 
-			InterpolationHelper(FbxScene* scene, FbxAnimLayer* layer, FbxAnimCurveDef::EInterpolationType interpolationMethod,
+			InterpolationHelper(FbxScene* scene, FbxAnimLayer* layer,
+				FbxAnimCurveDef::EInterpolationType interpolationMethod, bool EulerFilter, float filterPrecision,
 				FbxPropertyT<FbxDouble3>* scale, FbxPropertyT<FbxDouble4>* rotate, FbxPropertyT<FbxDouble3>* translate);
 			List<xaAnimationKeyframe^>^ InterpolateTrack(List<xaAnimationKeyframe^>^ keyframes, int resampleCount);
 			array<ImportedAnimationKeyframe^>^ InterpolateTrack(array<ImportedAnimationKeyframe^>^ keyframes, int resampleCount);

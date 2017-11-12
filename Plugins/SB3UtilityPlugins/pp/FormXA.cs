@@ -414,7 +414,7 @@ namespace SB3Utility
 			if (Editor.Parser.MorphSection != null)
 			{
 				LoadMorphs();
-				tabControlXA.SelectTabWithoutLoosingFocus(tabPageMorph);
+				tabControlXA.SelectTabWithoutLosingFocus(tabPageMorph);
 			}
 
 			if (Editor.Parser.AnimationSection != null)
@@ -438,7 +438,7 @@ namespace SB3Utility
 				DisableKeyframeTabControl();
 
 				dataGridViewAnimationClip.SelectionChanged -= dataGridViewAnimationClip_SelectionChanged;
-				tabControlXA.SelectTabWithoutLoosingFocus(tabPageAnimation);
+				tabControlXA.SelectTabWithoutLosingFocus(tabPageAnimation);
 				while (dataGridViewAnimationClip.SelectedRows.Count > 0)
 				{
 					dataGridViewAnimationClip.SelectedRows[0].Selected = false;
@@ -831,33 +831,63 @@ namespace SB3Utility
 			{
 				var track = trackList[i];
 				var keyframes = track.KeyframeList;
-				ScaleKey[] scaleKeys = new ScaleKey[keyframes.Count];
-				RotationKey[] rotationKeys = new RotationKey[keyframes.Count];
-				TranslationKey[] translationKeys = new TranslationKey[keyframes.Count];
+				int numKeyframes = keyframes.Count > 0 ? keyframes[keyframes.Count - 1].Index : 0;
+				ScaleKey[] scaleKeys = new ScaleKey[numKeyframes];
+				RotationKey[] rotationKeys = new RotationKey[numKeyframes];
+				TranslationKey[] translationKeys = new TranslationKey[numKeyframes];
 				for (int k = 0; k < 10; k++)
 				{
 					try
 					{
 						set.RegisterAnimationKeys(k == 0 ? track.Name : track.Name + "_error" + k, scaleKeys, rotationKeys, translationKeys);
-						for (int j = 0; j < keyframes.Count; j++)
+						Vector3 lastScaling = Vector3.Zero, lastTranslation = Vector3.Zero;
+						Quaternion lastInvRotation = Quaternion.Identity;
+						int index = 0;
+						for (int j = 0; j < numKeyframes; j++)
 						{
-							float time = keyframes[j].Index;
+							float time = j;
 
 							ScaleKey scale = new ScaleKey();
 							scale.Time = time;
-							scale.Value = keyframes[j].Scaling;
+							if (time < keyframes[index].Index)
+							{
+								scale.Value = lastScaling;
+							}
+							else
+							{
+								scale.Value = keyframes[index].Scaling;
+								lastScaling = scale.Value;
+							}
 							//scaleKeys[j] = scale;
 							set.SetScaleKey(i, j, scale);
 
 							RotationKey rotation = new RotationKey();
 							rotation.Time = time;
-							rotation.Value = Quaternion.Invert(keyframes[j].Rotation);
+							if (time < keyframes[index].Index)
+							{
+								rotation.Value = lastInvRotation;
+							}
+							else
+							{
+								rotation.Value = Quaternion.Invert(keyframes[index].Rotation);
+								lastInvRotation = rotation.Value;
+							}
 							//rotationKeys[j] = rotation;
 							set.SetRotationKey(i, j, rotation);
 
 							TranslationKey translation = new TranslationKey();
 							translation.Time = time;
-							translation.Value = keyframes[j].Translation;
+							if (time < keyframes[index].Index)
+							{
+								translation.Value = lastTranslation;
+							}
+							else
+							{
+								translation.Value = keyframes[index].Translation;
+								lastTranslation = translation.Value;
+
+								index++;
+							}
 							//translationKeys[j] = translation;
 							set.SetTranslationKey(i, j, translation);
 						}

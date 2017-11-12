@@ -22,7 +22,7 @@ namespace SB3Utility
 	}
 
 	[Plugin]
-	[PluginTool("&Workspace", "Ctrl+W")]
+	[PluginTool("&Workspace", "Control+W")]
 	public partial class FormWorkspace : DockContent
 	{
 		public Dictionary<DockContent, List<TreeNode>> ChildForms = new Dictionary<DockContent, List<TreeNode>>();
@@ -113,7 +113,7 @@ namespace SB3Utility
 			}
 
 			AddList(editor.Meshes, typeof(ImportedMesh).Name, editorVar);
-			AddList(importer.MaterialList, typeof(ImportedMaterial).Name, editorVar);
+			AddList(editor.Materials, typeof(ImportedMaterial).Name, editorVar);
 			AddList(importer.TextureList, typeof(ImportedTexture).Name, editorVar);
 			AddList(editor.Morphs, typeof(ImportedMorph).Name, editorVar);
 			AddList(editor.Animations, typeof(ImportedAnimation).Name, editorVar);
@@ -143,7 +143,7 @@ namespace SB3Utility
 			}
 			catch (FileNotFoundException)
 			{
-				// file deleted or renamed, shall the workspace be destroyed?
+				// file deleted or renamed, should the workspace be destroyed?
 			}
 			catch (Exception)
 			{
@@ -163,12 +163,21 @@ namespace SB3Utility
 					dynamic item = list[i];
 					TreeNode node = new TreeNode(item is WorkspaceAnimation
 						? ((WorkspaceAnimation)item).importedAnimation is ImportedKeyframedAnimation
-							? "Animation" + i : "Animation(Reduced Keys)" + i
-						: item.Name);
+							? "Animation" + i
+							: "Animation " + ((ImportedSampledAnimation)(((WorkspaceAnimation)item).importedAnimation)).Name
+						: item is WorkspaceMaterial
+							? null
+							: item.Name);
 					node.Checked = true;
 					node.Tag = new DragSource(editorVar, typeof(T), i);
 					this.treeView.AddChild(root, node);
-					if (item is WorkspaceMesh)
+					if (item is WorkspaceMaterial)
+					{
+						node.ContextMenuStrip = contextMenuStripMaterial;
+						root.ContextMenuStrip = contextMenuStripMaterial;
+						UpdateMaterialNode(node);
+					}
+					else if (item is WorkspaceMesh)
 					{
 						WorkspaceMesh mesh = item;
 						for (int j = 0; j < mesh.SubmeshList.Count; j++)
@@ -231,30 +240,75 @@ namespace SB3Utility
 								trackNode.Checked = animation.isTrackEnabled(track);
 								trackNode.Tag = track;
 								int numScalings = 0;
-								for (int k = 0; k < track.Scalings.Length; k++)
+								if (track.Scalings != null)
 								{
-									if (track.Scalings[k] != null)
-										numScalings++;
+									for (int k = 0; k < track.Scalings.Length; k++)
+									{
+										if (track.Scalings[k] != null)
+											numScalings++;
+									}
 								}
 								int numRotations = 0;
-								for (int k = 0; k < track.Rotations.Length; k++)
+								if (track.Rotations != null)
 								{
-									if (track.Rotations[k] != null)
-										numRotations++;
+									for (int k = 0; k < track.Rotations.Length; k++)
+									{
+										if (track.Rotations[k] != null)
+											numRotations++;
+									}
 								}
 								int numTranslations = 0;
-								for (int k = 0; k < track.Translations.Length; k++)
+								if (track.Translations != null)
 								{
-									if (track.Translations[k] != null)
-										numTranslations++;
+									for (int k = 0; k < track.Translations.Length; k++)
+									{
+										if (track.Translations[k] != null)
+											numTranslations++;
+									}
 								}
-								trackNode.Text = "Track: " + track.Name + ", Length: " + track.Scalings.Length + ", Scalings: " + numScalings + ", Rotations: " + numRotations + ", Translations: " + numTranslations;
+								int numMorphKeys = 0;
+								if (track.Curve != null)
+								{
+									for (int k = 0; k < track.Curve.Length; k++)
+									{
+										if (track.Curve[k] != null)
+										{
+											numMorphKeys++;
+										}
+									}
+								}
+								trackNode.Text = "Track: " + track.Name + ", Length: "
+									+ Math.Max
+									(
+										numScalings > 0 ? track.Scalings.Length : 0,
+										Math.Max
+										(
+											numRotations > 0 ? track.Rotations.Length : 0,
+											Math.Max
+											(
+												numTranslations > 0 ? track.Translations.Length : 0,
+												numMorphKeys > 0 ? track.Curve.Length : 0
+											)
+										)
+									)
+									+ (numScalings > 0 ? ", Scalings: " + numScalings : "")
+									+ (numRotations > 0 ? ", Rotations: " + numRotations : "")
+									+ (numTranslations > 0 ? ", Translations: " + numTranslations : "")
+									+ (numMorphKeys > 0 ? ", MorphKeys: " + numMorphKeys : "");
 								this.treeView.AddChild(node, trackNode);
 							}
 						}
 					}
 				}
 			}
+		}
+
+		private void UpdateMaterialNode(TreeNode node)
+		{
+			DragSource dragSrc = (DragSource)node.Tag;
+			var srcEditor = (ImportedEditor)Gui.Scripting.Variables[dragSrc.Variable];
+			WorkspaceMaterial wsMat = srcEditor.Materials[(int)dragSrc.Id];
+			node.Text = wsMat.Name + " mapping: " + wsMat.GetMapping();
 		}
 
 		private void UpdateSubmeshNode(TreeNode node)
@@ -274,7 +328,7 @@ namespace SB3Utility
 			DragSource dragSrc = (DragSource)morphNode.Tag;
 			var srcEditor = (ImportedEditor)Gui.Scripting.Variables[dragSrc.Variable];
 			string newName = srcEditor.Morphs[(int)dragSrc.Id].getMorphKeyframeNewName(keyframe);
-			node.Text = "Morph: " + keyframe.Name + (newName != String.Empty ? ", Rename to: " + newName : null);
+			node.Text = "Morph: " + keyframe.Name + (newName != String.Empty ? ", Rename to: " + newName : null) + " Weight=" + keyframe.Weight;
 		}
 
 		public static void UpdateAnimationNode(TreeNode node, WorkspaceAnimation animation)
@@ -770,6 +824,79 @@ namespace SB3Utility
 			treeView.EndUpdate();
 		}
 
+		private void contextMenuStripMaterial_Opening(object sender, CancelEventArgs e)
+		{
+			Point contextLoc = new Point(contextMenuStripMaterial.Left, contextMenuStripMaterial.Top);
+			Point relativeLoc = treeView.PointToClient(contextLoc);
+			TreeNode matNode = treeView.GetNodeAt(relativeLoc);
+			if (matNode.Tag == null)
+			{
+				toolStripMenuItemTextureMappingPrompt.Checked = false;
+				toolStripMenuItemTextureMappingDefault.Checked = false;
+			}
+			else
+			{
+				GetTextureMapping(matNode);
+			}
+		}
+
+		private void GetTextureMapping(TreeNode matNode)
+		{
+			DragSource dragSrc = (DragSource)matNode.Tag;
+			var srcEditor = (ImportedEditor)Gui.Scripting.Variables[dragSrc.Variable];
+			WorkspaceMaterial wsMat = srcEditor.Materials[(int)dragSrc.Id];
+			switch (wsMat.GetMapping())
+			{
+			case WorkspaceMaterial.Mapping.DEFAULT:
+				toolStripMenuItemTextureMappingPrompt.Checked = false;
+				toolStripMenuItemTextureMappingDefault.Checked = true;
+				break;
+			case WorkspaceMaterial.Mapping.PROMPT:
+				toolStripMenuItemTextureMappingDefault.Checked = false;
+				toolStripMenuItemTextureMappingPrompt.Checked = true;
+				break;
+			}
+		}
+
+		private void toolStripMenuItemTextureMapping_Click(object sender, EventArgs e)
+		{
+			Point contextLoc = new Point(contextMenuStripMaterial.Left, contextMenuStripMaterial.Top);
+			Point relativeLoc = treeView.PointToClient(contextLoc);
+			TreeNode matNode = treeView.GetNodeAt(relativeLoc);
+			WorkspaceMaterial.Mapping newMapping = sender == toolStripMenuItemTextureMappingDefault ? WorkspaceMaterial.Mapping.DEFAULT : WorkspaceMaterial.Mapping.PROMPT;
+			if (matNode.Tag == null)
+			{
+				foreach (TreeNode node in matNode.Nodes)
+				{
+					SetTextureMapping(node, newMapping);
+				}
+			}
+			else
+			{
+				SetTextureMapping(matNode, newMapping);
+			}
+		}
+
+		private void SetTextureMapping(TreeNode matNode, WorkspaceMaterial.Mapping newMapping)
+		{
+			DragSource dragSrc = (DragSource)matNode.Tag;
+			var srcEditor = (ImportedEditor)Gui.Scripting.Variables[dragSrc.Variable];
+			WorkspaceMaterial wsMat = srcEditor.Materials[(int)dragSrc.Id];
+			wsMat.SetMapping(newMapping);
+			UpdateMaterialNode(matNode);
+			switch (newMapping)
+			{
+			case WorkspaceMaterial.Mapping.DEFAULT:
+				toolStripMenuItemTextureMappingPrompt.Checked = false;
+				toolStripMenuItemTextureMappingDefault.Checked = true;
+				break;
+			case WorkspaceMaterial.Mapping.PROMPT:
+				toolStripMenuItemTextureMappingDefault.Checked = false;
+				toolStripMenuItemTextureMappingPrompt.Checked = true;
+				break;
+			}
+		}
+
 		private void contextMenuStripSubmesh_Opening(object sender, CancelEventArgs e)
 		{
 			Point contextLoc = new Point(contextMenuStripSubmesh.Left, contextMenuStripSubmesh.Top);
@@ -874,6 +1001,12 @@ namespace SB3Utility
 
 		private void treeView_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
 		{
+			if (e.Label == null)
+			{
+				e.CancelEdit = true;
+				return;
+			}
+
 			DragSource source = (DragSource)e.Node.Tag;
 			if (source.Type == typeof(WorkspaceMesh))
 			{

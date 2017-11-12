@@ -5,6 +5,7 @@ namespace SB3Utility
 {
 	public class Program
 	{
+		[STAThreadAttribute]
 		public static int Main(string[] args)
 		{
 			try
@@ -13,15 +14,16 @@ namespace SB3Utility
 
 				if (args.Length <= 0)
 				{
-					Console.WriteLine("Usage: SB3UtilityScript \"scriptPath.txt\"");
+					Console.WriteLine("Usage: SB3UtilityScript [\"scriptPath.txt\"]+");
 				}
 				else
 				{
+					Report.Log += new Action<string>(Logger);
+
+					ScriptMain script = new ScriptMain();
+					script.LoadPlugin((string)script.ScriptEnvironment.Variables[ScriptExecutor.PluginDirectoryName] + "SB3UtilityPlugins.dll");
 					for (int i = 0; i < args.Length; i++)
 					{
-						ScriptMain script = new ScriptMain();
-						Report.Log += new Action<string>(Logger);
-						script.LoadPlugin((string)script.ScriptEnvironment.Variables[ScriptExecutor.PluginDirectoryName] + "SB3UtilityPlugins.dll");
 						script.RunScript(args[i]);
 					}
 				}

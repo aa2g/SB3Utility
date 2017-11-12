@@ -36,6 +36,7 @@ namespace SB3Utility
 
 		void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
+			DialogResult = System.Windows.Forms.DialogResult.OK;
 			if (e.Cancelled)
 			{
 				this.DialogResult = DialogResult.Cancel;

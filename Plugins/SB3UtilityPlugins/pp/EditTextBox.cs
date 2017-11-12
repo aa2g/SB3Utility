@@ -18,7 +18,6 @@ namespace SB3Utility
 			: base()
 		{
 			beforeEditText = this.Text;
-			beforeEditFont = this.Font;
 			this.TextChanged += new EventHandler(EditTextBox_TextChanged);
 			this.GotFocus += new EventHandler(EditTextBox_GotFocus);
 		}
@@ -35,6 +34,7 @@ namespace SB3Utility
 		private void EditTextBox_GotFocus(object sender, EventArgs e)
 		{
 			beforeEditText = this.Text;
+			beforeEditFont = this.Font;
 		}
 
 		protected virtual void OnAfterEditTextChanged(EventArgs e)
@@ -72,7 +72,11 @@ namespace SB3Utility
 			{
 				this.Text = beforeEditText;
 				ResetState();
-				this.Parent.Focus();
+				Control[] cancelButtons = FindForm().Controls.Find("buttonCancel", true);
+				if (cancelButtons.Length > 0)
+				{
+					cancelButtons[0].Focus();
+				}
 			}
 
 			base.OnKeyPress(e);

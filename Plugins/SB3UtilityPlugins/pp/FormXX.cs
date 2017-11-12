@@ -7,7 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using SlimDX;
-using SlimDX.Direct3D9;
+using SlimDX.Direct3D11;
 using SlimDX.Windows;
 using WeifenLuo.WinFormsUI.Docking;
 
@@ -1191,19 +1191,71 @@ namespace SB3Utility
 				textBoxTexSize.Text = tex.Width + "x" + tex.Height;
 
 				ImportedTexture importedTex = xx.ImportedTexture(tex);
-				Texture renderTexture = Texture.FromMemory(Gui.Renderer.Device, importedTex.Data);
-				Bitmap bitmap = new Bitmap(Texture.ToStream(renderTexture, ImageFileFormat.Bmp));
-				string format = renderTexture.GetLevelDescription(0).Format.GetDescription();
-				int bpp = (format.Contains("A8") ? 8 : 0)
-					+ (format.Contains("R8") ? 8 : 0)
-					+ (format.Contains("G8") ? 8 : 0)
-					+ (format.Contains("B8") ? 8 : 0);
-				if (bpp > 0)
+				if (Path.GetExtension(importedTex.Name).ToUpper() == ".TGA")
 				{
-					textBoxTexSize.Text += "x" + bpp;
+					byte pixelDepth;
+					Texture2D renderTexture = Utility.TGA.ToImage(importedTex, out pixelDepth);
+					if (renderTexture != null)
+					{
+						int width = renderTexture.Description.Width;
+						int height = renderTexture.Description.Height;
+						int shift = 0;
+						for (int max = width > height ? width : height; max > 256; max >>= 1)
+						{
+							shift++;
+						}
+						width >>= shift;
+						height >>= shift;
+
+						using (Stream stream = new MemoryStream())
+						{
+							try
+							{
+								Texture2D.ToStream(Gui.Renderer.Device.ImmediateContext, renderTexture, ImageFileFormat.Bmp, stream);
+							}
+							catch { }
+							renderTexture.Dispose();
+							stream.Position = 0;
+							using (Image img = Image.FromStream(stream))
+							{
+								pictureBoxTexture.Image = new Bitmap(img, width, height);
+							}
+						}
+						textBoxTexSize.Text += "x" + pixelDepth;
+					}
+					else
+					{
+						pictureBoxTexture.Image = pictureBoxTexture.ErrorImage;
+					}
 				}
-				renderTexture.Dispose();
-				pictureBoxTexture.Image = bitmap;
+				else
+				{
+					using (Image img = Image.FromStream(new MemoryStream(importedTex.Data)))
+					{
+						int width, height;
+						int shift = 0;
+						for (int max = img.Width > img.Height ? img.Width : img.Height; max > 256; max >>= 1)
+						{
+							shift++;
+						}
+						width = img.Width >> shift;
+						height = img.Height >> shift;
+						pictureBoxTexture.Image = new Bitmap(img, img.Width, img.Height);
+						int bpp = 0;
+						if (img.PixelFormat.ToString().IndexOf("Format") >= 0)
+						{
+							bpp = img.PixelFormat.ToString().IndexOf("bpp");
+							if (!int.TryParse(img.PixelFormat.ToString().Substring(6, bpp - 6), out bpp))
+							{
+								bpp = 0;
+							}
+						}
+						if (bpp > 0)
+						{
+							textBoxTexSize.Text += "x" + bpp;
+						}
+					}
+				}
 
 				ResizeImage();
 			}
@@ -1559,7 +1611,7 @@ namespace SB3Utility
 					var tag = (DragSource)e.Node.Tag;
 					if (tag.Type == typeof(xxFrame))
 					{
-						tabControlViews.SelectTabWithoutLoosingFocus(tabPageFrameView);
+						tabControlViews.SelectTabWithoutLosingFocus(tabPageFrameView);
 						LoadFrame((int)tag.Id);
 						if (checkBoxMeshNewSkin.Checked)
 						{
@@ -1572,7 +1624,7 @@ namespace SB3Utility
 					}
 					else if (tag.Type == typeof(xxBone))
 					{
-						tabControlViews.SelectTabWithoutLoosingFocus(tabPageBoneView);
+						tabControlViews.SelectTabWithoutLosingFocus(tabPageBoneView);
 						int[] ids = (int[])tag.Id;
 						LoadBone(ids);
 					}
@@ -1683,7 +1735,7 @@ namespace SB3Utility
 					int id = (int)e.Item.Tag;
 					if (e.IsSelected)
 					{
-						tabControlViews.SelectTabWithoutLoosingFocus(tabPageMeshView);
+						tabControlViews.SelectTabWithoutLosingFocus(tabPageMeshView);
 						LoadMesh(id);
 						CrossRefAddItem(crossRefMeshMaterials[id], crossRefMeshMaterialsCount, listViewMeshMaterial, listViewMaterial);
 						CrossRefAddItem(crossRefMeshTextures[id], crossRefMeshTexturesCount, listViewMeshTexture, listViewTexture);
@@ -1760,7 +1812,7 @@ namespace SB3Utility
 					int id = (int)e.Item.Tag;
 					if (e.IsSelected)
 					{
-						tabControlViews.SelectTabWithoutLoosingFocus(tabPageMaterialView);
+						tabControlViews.SelectTabWithoutLosingFocus(tabPageMaterialView);
 						LoadMaterial(id);
 						CrossRefAddItem(crossRefMaterialMeshes[id], crossRefMaterialMeshesCount, listViewMaterialMesh, listViewMesh);
 						CrossRefAddItem(crossRefMaterialTextures[id], crossRefMaterialTexturesCount, listViewMaterialTexture, listViewTexture);
@@ -1812,7 +1864,7 @@ namespace SB3Utility
 					int id = (int)e.Item.Tag;
 					if (e.IsSelected)
 					{
-						tabControlViews.SelectTabWithoutLoosingFocus(tabPageTextureView);
+						tabControlViews.SelectTabWithoutLosingFocus(tabPageTextureView);
 						LoadTexture(id);
 						CrossRefAddItem(crossRefTextureMeshes[id], crossRefTextureMeshesCount, listViewTextureMesh, listViewMesh);
 						CrossRefAddItem(crossRefTextureMaterials[id], crossRefTextureMaterialsCount, listViewTextureMaterial, listViewMaterial);
@@ -2458,7 +2510,7 @@ namespace SB3Utility
 						RecreateMeshes();
 					}
 				}
-				else if (source.Type == typeof(ImportedMaterial))
+				else if (source.Type == typeof(WorkspaceMaterial))
 				{
 					Gui.Scripting.RunScript(EditorVar + ".MergeMaterial(mat=" + source.Variable + ".Imported.MaterialList[" + (int)source.Id + "])");
 					Changed = Changed;

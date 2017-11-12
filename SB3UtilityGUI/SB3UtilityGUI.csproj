@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SB3Utility</RootNamespace>
     <AssemblyName>SB3UtilityGUI</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -34,6 +35,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>HF-Logo.ico</ApplicationIcon>
@@ -42,6 +44,10 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DX11TutCore, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\DX11TutCore.dll</HintPath>
+    </Reference>
     <Reference Include="SlimDX, Version=4.0.13.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SB3UtilityExternalLibraries\SlimDX.dll</HintPath>
@@ -54,13 +60,12 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
+    <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.5.0.15095, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\SB3UtilityExternalLibraries\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=3.0.1.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\packages\DockPanelSuite.3.0.1\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +176,7 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -189,24 +195,30 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="DX11TutCore.dll" />
     <Content Include="HF-Logo.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if not exist msvcp100.dll (echo msvcp100.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\msvc*100.dll)
-if not exist plugins\msvcr110.dll (echo msvcr110.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\msvc*110.dll plugins)
-if not exist irrKlang.NET4.dll (echo irrKlang.NET4.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\irrKlang.NET4.dll)
-if not exist SlimDX.dll (echo SlimDX.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\SlimDX.dll)
-if not exist Jolt.dll (echo Jolt.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\Jolt.dll)
-if not exist Jolt.Testing.GeneratedTypes.dll (echo Jolt.Testing.GeneratedTypes.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\Jolt.Testing.GeneratedTypes.dll)
-if not exist WeifenLuo.WinFormsUI.Docking.dll (echo WeifenLuo.WinFormsUI.Docking.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\WeifenLuo.WinFormsUI.Docking.dll)
-if not exist plugins\niflib.dll (echo plugins\niflib.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\niflib.dll)
-if not exist plugins\libfbxsdk.dll (echo plugins\libfbxsdk.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\libfbxsdk.dll plugins)
+    <PostBuildEvent>REM if not exist msvcp100.dll (echo msvcp100.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\msvc*100.dll)
+REM if not exist plugins\msvcr110.dll (echo msvcr110.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\msvc*110.dll plugins)
+REM if not exist fmod.dll (echo fmod.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\fmod.dll)
+REM if not exist SlimDX.dll (echo SlimDX.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\SlimDX.dll)
+REM if not exist Jolt.dll (echo Jolt.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\Jolt.dll)
+REM if not exist Jolt.Testing.GeneratedTypes.dll (echo Jolt.Testing.GeneratedTypes.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\Jolt.Testing.GeneratedTypes.dll)
+REM if not exist WeifenLuo.WinFormsUI.Docking.dll (echo WeifenLuo.WinFormsUI.Docking.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\WeifenLuo.WinFormsUI.Docking.dll)
+REM if not exist plugins\niflib.dll (echo plugins\niflib.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\niflib.dll)
+REM if not exist plugins\libfbxsdk.dll (echo plugins\libfbxsdk.dll missing! &amp;&amp; copy ..\SB3UtilityExternalLibraries\libfbxsdk.dll plugins)
 REM The following DLLs are needed for the dependency check of SB3UtilityFBX. Not needed to be deployed.
 REM if exist plugins\Jolt.dll del plugins\Jolt.dll
 REM if exist plugins\Jolt.Testing.GeneratedTypes.dll del plugins\Jolt.Testing.GeneratedTypes.dll
 REM if exist plugins\WeifenLuo.WinFormsUI.Docking.dll del plugins\WeifenLuo.WinFormsUI.Docking.dll
 REM if exist plugins\SB3Utility.dll del plugins\SB3Utility.dll</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

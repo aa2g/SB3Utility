@@ -16,8 +16,9 @@ namespace SB3Utility
 		ListViewItem item = null;
 
 		private SizeF startSize;
+		private bool strict;
 
-		public FormPPRename(ListViewItem item)
+		public FormPPRename(ListViewItem item, bool strict = true)
 		{
 			InitializeComponent();
 			startSize = new SizeF(Width, Height);
@@ -25,6 +26,7 @@ namespace SB3Utility
 			this.item = item;
 			this.textBox1.Text = item.Text;
 			NewName = null;
+			this.strict = strict;
 		}
 
 		private void buttonCancel_Click(object sender, EventArgs e)
@@ -42,21 +44,24 @@ namespace SB3Utility
 				this.Close();
 				return;
 			}
-			if (textBox1.Text.Length == 0)
+			if (strict)
 			{
-				Report.ReportLog("The filename length must be greater than 0");
-				return;
-			}
-			if ((textBox1.Text.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) || (textBox1.Text.IndexOfAny(Path.GetInvalidPathChars()) >= 0))
-			{
-				Report.ReportLog("That filename has invalid characters");
-				return;
-			}
-			ListViewItem foundItem = item.ListView.FindItemWithText(textBox1.Text, false, 0, false);
-			if (foundItem != null)
-			{
-				Report.ReportLog("That filename already exists at position " + foundItem.Index);
-				return;
+				if (textBox1.Text.Length == 0)
+				{
+					Report.ReportLog("The filename length must be greater than 0");
+					return;
+				}
+				if ((textBox1.Text.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) || (textBox1.Text.IndexOfAny(Path.GetInvalidPathChars()) >= 0))
+				{
+					Report.ReportLog("That filename has invalid characters");
+					return;
+				}
+				ListViewItem foundItem = item.ListView.FindItemWithText(textBox1.Text, false, 0, false);
+				if (foundItem != null && foundItem != item)
+				{
+					Report.ReportLog("That filename already exists at position " + foundItem.Index);
+					return;
+				}
 			}
 
 			NewName = textBox1.Text;

@@ -6,8 +6,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using SlimDX;
-using SlimDX.Direct3D9;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace SB3Utility
@@ -46,6 +44,8 @@ namespace SB3Utility
 				string itemText = item.Text.Substring(0, item.Text.IndexOf('&')) + item.Text.Substring(item.Text.IndexOf('&') + 1);
 				item.Checked = itemText == Renderer.ShowBoneWeights.ToString();
 			}
+
+			checkBoxLockLight.CheckedChanged += checkBoxLockLight_CheckedChanged;
 		}
 
 		void CustomDispose()
@@ -61,6 +61,11 @@ namespace SB3Utility
 		private void buttonResetPose_Click(object sender, EventArgs e)
 		{
 			Renderer.ResetPose();
+		}
+
+		void checkBoxLockLight_CheckedChanged(object sender, EventArgs e)
+		{
+			Renderer.LockLight = checkBoxLockLight.Checked;
 		}
 
 		private void numericSensitivity_ValueChanged(object sender, EventArgs e)

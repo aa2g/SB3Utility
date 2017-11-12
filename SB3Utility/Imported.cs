@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SlimDX;
-using SlimDX.Direct3D9;
+using SlimDX.Direct3D11;
 
 namespace SB3Utility
 {
@@ -77,6 +77,8 @@ namespace SB3Utility
 		public Color4 Emissive { get; set; }
 		public float Power { get; set; }
 		public string[] Textures { get; set; }
+		public Vector2[] TexOffsets { get; set; }
+		public Vector2[] TexScales { get; set; }
 	}
 
 	public class ImportedTexture
@@ -105,11 +107,11 @@ namespace SB3Utility
 			}
 		}
 
-		public Texture ToTexture(Device device)
+		public SlimDX.Direct3D11.Texture2D ToTexture(Device device)
 		{
 			if (!isCompressed)
 			{
-				return Texture.FromMemory(device, Data);
+				return SlimDX.Direct3D11.Texture2D.FromMemory(device, Data);
 			}
 
 			int width = BitConverter.ToInt16(Data, 8 + 4);
@@ -119,11 +121,12 @@ namespace SB3Utility
 			int bytesPerPixel = bpp / 8;
 			int total = width * height * bytesPerPixel;
 
-			byte[] uncompressedTGA = new byte[18 + total + 26];
-			Array.Copy(Data, uncompressedTGA, 18);
+			byte idLen = Data[0];
+			byte[] uncompressedTGA = new byte[18 + idLen + total];
+			Array.Copy(Data, uncompressedTGA, 18 + idLen);
 			uncompressedTGA[2] = 0x02;
 
-			int srcIdx = 18, dstIdx = 18;
+			int srcIdx = 18 + idLen, dstIdx = 18 + idLen;
 			for (int end = 18 + total; dstIdx < end; )
 			{
 				byte packetHdr = Data[srcIdx++];
@@ -148,8 +151,7 @@ namespace SB3Utility
 				}
 			}
 
-			Array.Copy(Data, srcIdx, uncompressedTGA, dstIdx, 26);
-			return Texture.FromMemory(device, uncompressedTGA);
+			return SlimDX.Direct3D11.Texture2D.FromMemory(device, uncompressedTGA);
 		}
 	}
 
@@ -161,11 +163,25 @@ namespace SB3Utility
 	public abstract class ImportedAnimationTrackContainer<TrackType> : ImportedAnimation where TrackType : ImportedAnimationTrack
 	{
 		public List<TrackType> TrackList { get; set; }
+
+		public TrackType FindTrack(string name)
+		{
+			return TrackList.Find
+			(
+				delegate(TrackType track)
+				{
+					return track.Name == name;
+				}
+			);
+		}
 	}
 
 	public class ImportedKeyframedAnimation : ImportedAnimationTrackContainer<ImportedAnimationKeyframedTrack> { }
 
-	public class ImportedSampledAnimation : ImportedAnimationTrackContainer<ImportedAnimationSampledTrack> { }
+	public class ImportedSampledAnimation : ImportedAnimationTrackContainer<ImportedAnimationSampledTrack>
+	{
+		public string Name { get; set; }
+	}
 
 	public abstract class ImportedAnimationTrack
 	{
@@ -189,6 +205,7 @@ namespace SB3Utility
 		public Vector3?[] Scalings;
 		public Quaternion?[] Rotations;
 		public Vector3?[] Translations;
+		public float?[] Curve;
 	}
 
 	public class ImportedMorph
@@ -198,6 +215,7 @@ namespace SB3Utility
 		/// </summary>
 		public string Name { get; set; }
 		public string ClipName { get; set; }
+		public List<Tuple<float, int, int>> Channels { get; set; }
 		public List<ImportedMorphKeyframe> KeyframeList { get; set; }
 		public List<ushort> MorphedVertexIndices { get; set; }
 	}
@@ -210,6 +228,7 @@ namespace SB3Utility
 		public string Name { get; set; }
 		public List<ImportedVertex> VertexList { get; set; }
 		public List<ushort> MorphedVertexIndices { get; set; }
+		public float Weight { get; set; }
 	}
 
 	public static class ImportedHelpers
@@ -259,12 +278,22 @@ namespace SB3Utility
 
 		public static ImportedMesh FindMesh(ImportedFrame frame, List<ImportedMesh> importedMeshList)
 		{
-			string framePath = frame.Name;
+			StringBuilder sb = new StringBuilder();
+			string framePath;
 			ImportedFrame root = frame;
 			while (root.Parent != null)
 			{
+				sb.Insert(0, root.Name).Insert(0, '/');
 				root = root.Parent;
-				framePath = root.Name + "/" + framePath;
+			}
+			if (sb.Length > 0)
+			{
+				sb.Remove(0, 1);
+				framePath = sb.ToString();
+			}
+			else
+			{
+				framePath = "AnimationRoot";
 			}
 
 			foreach (ImportedMesh mesh in importedMeshList)
@@ -303,6 +332,24 @@ namespace SB3Utility
 				if (tex.Name == name)
 				{
 					return tex;
+				}
+			}
+
+			return null;
+		}
+
+		public static ImportedAnimation FindAnimation(string name, List<ImportedAnimation> importedAnimations)
+		{
+			if (name == null || name == string.Empty)
+			{
+				return null;
+			}
+
+			foreach (ImportedAnimation anim in importedAnimations)
+			{
+				if (anim is ImportedSampledAnimation && ((ImportedSampledAnimation)anim).Name == name)
+				{
+					return anim;
 				}
 			}
 

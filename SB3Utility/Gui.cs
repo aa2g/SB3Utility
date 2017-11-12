@@ -5,13 +5,13 @@ using System.Windows.Forms;
 using System.Configuration;
 using WeifenLuo.WinFormsUI.Docking;
 using SlimDX;
-using SlimDX.Direct3D9;
+using SlimDX.Direct3D11;
 
 namespace SB3Utility
 {
 	public static class Gui
 	{
-		public static string Version = "1.0.16";
+		public static string Version = "1.7.14";
 
 		public static IScripting Scripting { get; set; }
 		public static IDocking Docking { get; set; }
@@ -69,6 +69,13 @@ namespace SB3Utility
 		event EventHandler RenderObjectAdded;
 
 		Device Device { get; }
+		Core.FX.Effect Effect { get; }
+		InputLayout MorphedVertexLayout { get; }
+		InputLayout BlendedVertexLayout { get; }
+		InputLayout VertexNormalLayout { get; }
+		InputLayout VertexBoneLayout { get; }
+
+		Core.DirectionalLight[] Lights { get; set; }
 
 		void CenterView();
 
