@@ -273,10 +273,18 @@ namespace SB3Utility
                 */
                 int itemWidth = (int)Math.Ceiling(Graphics.FromHwnd(Handle).MeasureString(item.Text, bold).Width) + 16;
 
+                Color encodedColor = Color.LightSkyBlue;
+
                 string ext = Path.GetExtension(file.Name).ToLower();
 				if (ext.Equals(".xx") || ext.Equals(".xx2") || ext.Equals(".xx3"))
 				{
+                    if (file.Type == ArchiveFileType.Xx2Mesh || file.Type == ArchiveFileType.Xx3Mesh)
+                    {
+                        item.BackColor = encodedColor;
+                    }
+
 					xxFiles.Add(item);
+
 					if (itemWidth > xxSubfilesListHeader.Width)
 					{
 						xxSubfilesListHeader.Width = itemWidth;
@@ -290,9 +298,15 @@ namespace SB3Utility
 						xaSubfilesListHeader.Width = itemWidth;
 					}
 				}
-				else if (ext.Equals(".ema") || Utility.ImageSupported(ext))
+				else if (ext.Equals(".ema") || Utility.ImageSupported(ext) || ext.Equals(".tga"))
 				{
-					imageFiles.Add(item);
+                    if (file.ArchiveName == "_TextureBank")
+                    {
+                        item.BackColor = encodedColor;
+                    }
+
+                    imageFiles.Add(item);
+
 					if (itemWidth > imageSubfilesListHeader.Width)
 					{
 						imageSubfilesListHeader.Width = itemWidth;
@@ -300,7 +314,13 @@ namespace SB3Utility
 				}
 				else if (ext.Equals(".ogg") || ext.Equals(".wav") || ext.Equals(".xgg"))
 				{
-					soundFiles.Add(item);
+                    if (file.Type == ArchiveFileType.XggAudio)
+                    {
+                        item.BackColor = encodedColor;
+                    }
+
+                    soundFiles.Add(item);
+
 					if (itemWidth > soundSubfilesListHeader.Width)
 					{
 						soundSubfilesListHeader.Width = itemWidth;
