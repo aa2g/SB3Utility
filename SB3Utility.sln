@@ -28,10 +28,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SB3UtilityPP", "Plugins\SB3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxHighlightingTextBox", "Plugins\SyntaxHighlightingTextBox\SyntaxHighlightingTextBox.csproj", "{93EC5C55-84BB-4FA4-8599-A6C85841E982}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityBase", "Plugins\UnityBase\UnityBase.csproj", "{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityPlugin", "Plugins\UnityPlugin\UnityPlugin.csproj", "{AA5F87F2-921D-4909-B55C-5A257CBD5A58}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DX11TutCore", "DX11TutCore\DX11TutCore.csproj", "{E81549E0-46A2-4B80-AC0F-2D23A88E2552}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PPD_Preview_Clothes", "Plugins\PPD_Preview_Clothes\PPD_Preview_Clothes.csproj", "{2B7FE5F1-FCA8-4821-A5AD-9EED3F995730}"
@@ -134,30 +130,6 @@ Global
 		{93EC5C55-84BB-4FA4-8599-A6C85841E982}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{93EC5C55-84BB-4FA4-8599-A6C85841E982}.Release|Win32.ActiveCfg = Release|Any CPU
 		{93EC5C55-84BB-4FA4-8599-A6C85841E982}.Release|x86.ActiveCfg = Release|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Release|Win32.ActiveCfg = Release|Any CPU
-		{170A79DD-8B28-4E53-A1EF-5C923AADEF0A}.Release|x86.ActiveCfg = Release|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Release|Win32.ActiveCfg = Release|Any CPU
-		{AA5F87F2-921D-4909-B55C-5A257CBD5A58}.Release|x86.ActiveCfg = Release|Any CPU
 		{E81549E0-46A2-4B80-AC0F-2D23A88E2552}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E81549E0-46A2-4B80-AC0F-2D23A88E2552}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E81549E0-46A2-4B80-AC0F-2D23A88E2552}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
