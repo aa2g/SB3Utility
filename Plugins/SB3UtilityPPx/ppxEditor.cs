@@ -122,11 +122,12 @@ namespace SB3Utility
         public void AddSubfiles(string path, bool replace)
         {
             throw new NotImplementedException();
-
+            /*
             foreach (string file in Directory.EnumerateFiles(Path.GetDirectoryName(path), Path.GetFileName(path)))
             {
                 AddSubfile(file, replace);
             }
+            */
         }
 
         [Plugin]
@@ -185,9 +186,20 @@ namespace SB3Utility
             return Archive.Files.FirstOrDefault(x => x.ArchiveName == archiveName && x.Name == name);
         }
 
-        public List<ISubfile> GetSubfiles(string archiveName)
+        public IList<ISubfile> GetSubfiles(string archiveName)
         {
-            return Archive.Files.Where(x => x.ArchiveName == archiveName).Select(x => (ISubfile)x).ToList();
+            var files = Archive.Files.Where(x => x.ArchiveName == archiveName).ToList();
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                if (files[i].Type != ArchiveFileType.XggAudio)
+                    using (var decoder = PPeX.Encoders.EncoderFactory.GetDecoder(Stream.Null, Archive, files[i].Type))
+                    {
+                        files[i] = new ArchiveSubfile(files[i].Source as ArchiveFileSource, decoder.NameTransform(files[i].Name));
+                    }
+            }
+
+            return files;
         }
 
         [Plugin]
@@ -200,7 +212,25 @@ namespace SB3Utility
                 throw new Exception("Couldn't find the subfile " + archiveName + "/" + name);
             }
 
-            return file.GetRawStream();
+            return (file.Source as ArchiveFileSource).GetRawStream();
+        }
+
+        [Plugin]
+        public void ExportSubfile(string arcname, string name, string path)
+        {
+            var subfile = GetSubfile(arcname, name);
+
+            using (FileStream fs = new FileStream(path, FileMode.Create))
+                if (subfile.Type != ArchiveFileType.XggAudio)
+                {
+                    using (Stream stream = subfile.GetRawStream())
+                        stream.CopyTo(fs);
+                }
+                else
+                {
+                    using (Stream stream = (subfile.Source as ArchiveFileSource).GetRawStream())
+                        stream.CopyTo(fs);
+                }
         }
 
         [Plugin]

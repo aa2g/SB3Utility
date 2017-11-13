@@ -21,7 +21,6 @@ namespace SB3Utility
 		public string FormVariable { get; protected set; }
 		public ppxEditor Editor { get; protected set; }
 		public string EditorVar { get; protected set; }
-		public string ParserVar { get; protected set; }
 
 		List<ListView> subfileListViews = new List<ListView>();
 
@@ -114,11 +113,11 @@ namespace SB3Utility
 				}
 
 				FormVariable = variable;
+                
+				EditorVar = Gui.Scripting.GetNextVariable("ppxEditor");
 
-				ParserVar = Gui.Scripting.GetNextVariable("ppParser");
-				EditorVar = Gui.Scripting.GetNextVariable("ppEditor");
-
-                Editor = new ppxEditor(path);
+                //Editor = new ppxEditor(path);
+                Editor = (ppxEditor)Gui.Scripting.RunScript(EditorVar + " = ppxEditor(path=\"" + path + "\")");
 
                 /*
 				object result = Gui.Scripting.RunScript(ParserVar + " = OpenPP(path=\"" + path + "\")");
@@ -136,7 +135,7 @@ namespace SB3Utility
 				}
                 */
 
-				Text = Path.GetFileName(path);
+                Text = Path.GetFileName(path);
 				ToolTipText = path;
 				ShowHint = DockState.Document;
 
@@ -147,8 +146,6 @@ namespace SB3Utility
 				subfileListViews.Add(imageSubfilesList);
 				subfileListViews.Add(soundSubfilesList);
 				subfileListViews.Add(otherSubfilesList);
-
-				InitSubfileLists(true);
                 
 				foreach (string archive in Editor.Archive.Files.Select(x => x.ArchiveName).Distinct())
 				{
@@ -159,10 +156,11 @@ namespace SB3Utility
                     }
 					
 				}
-				comboBoxArchives.SelectedIndex = 0;
 				comboBoxArchives.SelectedIndexChanged += new EventHandler(comboBoxArchives_SelectedIndexChanged);
+                comboBoxArchives.SelectedIndex = 0;
+                InitSubfileLists(true);
 
-				this.FormClosing += new FormClosingEventHandler(FormPP_FormClosing);
+                this.FormClosing += new FormClosingEventHandler(FormPP_FormClosing);
 				Gui.Docking.ShowDockContent(this, Gui.Docking.DockFiles, ContentCategory.Archives);
 
 				keepBackupToolStripMenuItem.Checked = (bool)Gui.Config["KeepBackupOfPP"];
@@ -224,7 +222,6 @@ namespace SB3Utility
 				ChildParserVars.Clear();
 				Gui.Scripting.Variables.Remove(FormVariable);
 				Gui.Scripting.Variables.Remove(EditorVar);
-				Gui.Scripting.Variables.Remove(ParserVar);
 			}
 			catch (Exception ex)
 			{
@@ -328,8 +325,8 @@ namespace SB3Utility
 				}
 				else
 				{
-					List<ExternalTool> toolList;
                     /*
+					List<ExternalTool> toolList;
 					if (!ext.EndsWith(".lst") && !ppEditor.ExternalTools.TryGetValue(ext.ToUpper(), out toolList))
 					{
 						item.BackColor = Color.LightCoral;
@@ -832,18 +829,15 @@ namespace SB3Utility
 
 		private void reopenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
-            /*
 			try
 			{
-				string opensFileVar = Gui.Scripting.GetNextVariable("opensPP");
-				Gui.Scripting.RunScript(opensFileVar + " = FormPP(path=\"" + Editor.Parser.FilePath + "\", variable=\"" + opensFileVar + "\")", false);
+				string opensFileVar = Gui.Scripting.GetNextVariable("opensPPx");
+				Gui.Scripting.RunScript(opensFileVar + " = FormPPx(path=\"" + Editor.Archive.Filename + "\", variable=\"" + opensFileVar + "\")", false);
 			}
 			catch (Exception ex)
 			{
 				Utility.ReportException(ex);
 			}
-            */
 		}
 
 		private void newSourceFormatToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1243,11 +1237,9 @@ namespace SB3Utility
 
 		private void exportSubfilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
-            /*
 			try
 			{
-				folderBrowserDialog1.SelectedPath = Path.GetDirectoryName(this.Editor.Parser.FilePath);
+				folderBrowserDialog1.SelectedPath = Path.GetDirectoryName(this.Editor.Archive.Filename);
 				folderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer;
 
 				ListView subfilesList = null;
@@ -1278,9 +1270,10 @@ namespace SB3Utility
 					{
 						foreach (ListViewItem item in subfilesList.SelectedItems)
 						{
-							IWriteFile subfile = (IWriteFile)item.Tag;
-							Gui.Scripting.RunScript("ExportSubfile(parser=" + ParserVar + ", name=\"" + subfile.Name + "\", path=\"" + folderBrowserDialog1.SelectedPath + @"\" + subfile.Name + "\")");
-						}
+							ISubfile subfile = (ISubfile)item.Tag;
+                            ArchiveFileSource source = subfile.Source as ArchiveFileSource;
+                            Gui.Scripting.RunScript(EditorVar + ".ExportSubfile(arcname=\"" + source.ArchiveName + "\", name=\"" + source.Name + "\", path=\"" + folderBrowserDialog1.SelectedPath + @"\" + subfile.Name + "\")");
+                        }
 					}
 				}
 			}
@@ -1288,7 +1281,6 @@ namespace SB3Utility
 			{
 				Utility.ReportException(ex);
 			}
-            */
 		}
 
 		private void closeToolStripMenuItem_Click(object sender, EventArgs e)
