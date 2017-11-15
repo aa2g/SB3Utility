@@ -55,7 +55,6 @@
             this.saveppAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.reopenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.newSourceFormatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.subfilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -75,10 +74,10 @@
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.keepBackupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.backupExtensionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.backupExtensionToolStripEditTextBox = new SB3Utility.ToolStripEditTextBox();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            this.backupExtensionToolStripEditTextBox = new SB3Utility.ToolStripEditTextBox();
             this.tabControlSubfiles.SuspendLayout();
             this.tabPageXXSubfiles.SuspendLayout();
             this.tabPageXASubfiles.SuspendLayout();
@@ -332,7 +331,6 @@
             this.saveppAsToolStripMenuItem,
             this.toolStripSeparator1,
             this.reopenToolStripMenuItem,
-            this.newSourceFormatToolStripMenuItem,
             this.toolStripSeparator6,
             this.closeToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
@@ -341,7 +339,6 @@
             // 
             // exportPPToolStripMenuItem
             // 
-            this.exportPPToolStripMenuItem.Enabled = false;
             this.exportPPToolStripMenuItem.Name = "exportPPToolStripMenuItem";
             this.exportPPToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exportPPToolStripMenuItem.Text = "&Export...";
@@ -350,14 +347,13 @@
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(175, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(177, 6);
             // 
             // saveppToolStripMenuItem
             // 
-            this.saveppToolStripMenuItem.Enabled = false;
             this.saveppToolStripMenuItem.Name = "saveppToolStripMenuItem";
             this.saveppToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveppToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.saveppToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveppToolStripMenuItem.Text = "&Save .ppx";
             this.saveppToolStripMenuItem.Click += new System.EventHandler(this.saveppToolStripMenuItem_Click);
             // 
@@ -365,14 +361,14 @@
             // 
             this.saveppAsToolStripMenuItem.Enabled = false;
             this.saveppAsToolStripMenuItem.Name = "saveppAsToolStripMenuItem";
-            this.saveppAsToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.saveppAsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveppAsToolStripMenuItem.Text = "Save .ppx &As...";
             this.saveppAsToolStripMenuItem.Click += new System.EventHandler(this.saveppAsToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(175, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
             // 
             // reopenToolStripMenuItem
             // 
@@ -382,25 +378,15 @@
             this.reopenToolStripMenuItem.Text = "&Reopen .ppx";
             this.reopenToolStripMenuItem.Click += new System.EventHandler(this.reopenToolStripMenuItem_Click);
             // 
-            // newSourceFormatToolStripMenuItem
-            // 
-            this.newSourceFormatToolStripMenuItem.Enabled = false;
-            this.newSourceFormatToolStripMenuItem.Name = "newSourceFormatToolStripMenuItem";
-            this.newSourceFormatToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
-            this.newSourceFormatToolStripMenuItem.Text = "New Source &Format";
-            this.newSourceFormatToolStripMenuItem.ToolTipText = "This reopens the pp file using the currently selected format.\r\nUse this function " +
-    "after a failed automatic format detection.";
-            this.newSourceFormatToolStripMenuItem.Click += new System.EventHandler(this.newSourceFormatToolStripMenuItem_Click);
-            // 
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(175, 6);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(177, 6);
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.closeToolStripMenuItem.Text = "&Close";
             this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
@@ -436,7 +422,6 @@
             // 
             // addFilesToolStripMenuItem
             // 
-            this.addFilesToolStripMenuItem.Enabled = false;
             this.addFilesToolStripMenuItem.Name = "addFilesToolStripMenuItem";
             this.addFilesToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.addFilesToolStripMenuItem.Text = "&Add Files...";
@@ -449,7 +434,6 @@
             // 
             // removeToolStripMenuItem
             // 
-            this.removeToolStripMenuItem.Enabled = false;
             this.removeToolStripMenuItem.Name = "removeToolStripMenuItem";
             this.removeToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.removeToolStripMenuItem.Text = "Re&move";
@@ -539,11 +523,6 @@
             this.backupExtensionToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.backupExtensionToolStripMenuItem.Text = "Backup &Extension";
             // 
-            // backupExtensionToolStripEditTextBox
-            // 
-            this.backupExtensionToolStripEditTextBox.Name = "backupExtensionToolStripEditTextBox";
-            this.backupExtensionToolStripEditTextBox.Size = new System.Drawing.Size(50, 23);
-            // 
             // saveFileDialog1
             // 
             this.saveFileDialog1.RestoreDirectory = true;
@@ -552,6 +531,11 @@
             // 
             this.openFileDialog1.Multiselect = true;
             this.openFileDialog1.RestoreDirectory = true;
+            // 
+            // backupExtensionToolStripEditTextBox
+            // 
+            this.backupExtensionToolStripEditTextBox.Name = "backupExtensionToolStripEditTextBox";
+            this.backupExtensionToolStripEditTextBox.Size = new System.Drawing.Size(50, 23);
             // 
             // FormPPx
             // 
@@ -627,7 +611,6 @@
 		private System.Windows.Forms.ToolStripMenuItem unregisterToolsToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem forSelectedExtensionsOnlyToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem aLLRegardlessOfExtensionToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem newSourceFormatToolStripMenuItem;
 		private System.Windows.Forms.ColumnHeader xxSubfilesListHeader;
 		public System.Windows.Forms.ListView otherSubfilesList;
 		private System.Windows.Forms.ToolStripMenuItem multiRenameToolStripMenuItem;

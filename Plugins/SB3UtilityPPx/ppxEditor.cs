@@ -18,7 +18,10 @@ namespace SB3Utility
     [Plugin]
     public class ppxEditor : EditedContent
     {
-        public ExtendedArchive Archive { get; protected set; }
+        public ExtendedArchive Archive => Appender.BaseArchive;
+        public ExtendedArchiveAppender Appender { get; protected set; }
+
+        protected IEnumerable<ISubfile> totalFiles => Archive.Files.Union(Appender.FilesToAdd).Where(x => !Appender.FilesToRemove.Contains(x.Source));
 
         public static Dictionary<string, List<ExternalTool>> ExternalTools;
 
@@ -47,7 +50,7 @@ namespace SB3Utility
                 }
             }
 
-            Archive = archive;
+            Appender = new ExtendedArchiveAppender(archive);
         }
 
         public bool Changed
@@ -57,11 +60,9 @@ namespace SB3Utility
         }
 
         [Plugin]
-        public BackgroundWorker SavePPx(bool keepBackup, string backupExtension, bool background)
+        public void SavePPx()
         {
-            throw new NotImplementedException();
-
-            //return SavePPx(Parser.FilePath, keepBackup, backupExtension, background);
+            Appender.Write();
         }
 
         [Plugin]
@@ -88,62 +89,59 @@ namespace SB3Utility
             Parser.Subfiles.Insert(index, file);
             */
         }
-
-        [Plugin]
-        public void AddSubfile(string path)
+        
+        protected void AddSubfile(string arcname, string path)
         {
-            throw new NotImplementedException();
+            string name = Path.GetFileName(path);
 
-            /*
-            Parser.Subfiles.Add(new RawFile(path));
+            Appender.FilesToAdd.Add(new Subfile(
+                new FileSource(path),
+                name,
+                arcname));
+
             Changed = true;
-            */
         }
 
         [Plugin]
-        public void AddSubfile(string path, bool replace)
+        public void AddSubfile(string arcname, string path, bool replace)
         {
-            throw new NotImplementedException();
+            string name = Path.GetFileName(path);
 
-            /*
-            int index = FindSubfile(Path.GetFileName(path));
-            if (!replace || index < 0)
-            {
-                AddSubfile(path);
+            bool found = FindSubfile(arcname, name);
+            if (!replace && found)
                 return;
-            }
-            Parser.Subfiles.RemoveAt(index);
-            Parser.Subfiles.Insert(index, new RawFile(path));
+            else if (replace && found)
+                RemoveSubfile(arcname, name);
+            
+            AddSubfile(arcname, path);
             Changed = true;
-            */
         }
 
         [Plugin]
-        public void AddSubfiles(string path, bool replace)
+        public void AddSubfiles(string arcname, string path, bool replace)
         {
-            throw new NotImplementedException();
-            /*
             foreach (string file in Directory.EnumerateFiles(Path.GetDirectoryName(path), Path.GetFileName(path)))
             {
-                AddSubfile(file, replace);
+                AddSubfile(arcname, file, replace);
             }
-            */
         }
 
         [Plugin]
-        public void RemoveSubfile(string name)
+        public void RemoveSubfile(string arcname, string name)
         {
-            throw new NotImplementedException();
-            /*
-            int index = FindSubfile(name);
-            if (index < 0)
+            if (!FindSubfile(arcname, name))
             {
                 throw new Exception("Couldn't find the subfile " + name);
             }
 
-            Parser.Subfiles.RemoveAt(index);
+            var file = GetSubfile(arcname, name);
+
+            if (file.Source is ArchiveFileSource)
+                Appender.FilesToRemove.Add(file.Source as ArchiveFileSource);
+            else
+                Appender.FilesToAdd.Remove(file);
+
             Changed = true;
-            */
         }
 
         [Plugin]
@@ -177,18 +175,18 @@ namespace SB3Utility
 
         public bool FindSubfile(string archiveName, string name)
         {
-            return Archive.Files.Any(x => x.ArchiveName == archiveName && x.Name == name);
+            return totalFiles.Any(x => x.ArchiveName == archiveName && x.Name == name);
         }
 
         public ISubfile GetSubfile(string archiveName, string name)
         {
 #warning should names be case sensitive?
-            return Archive.Files.FirstOrDefault(x => x.ArchiveName == archiveName && x.Name == name);
+            return totalFiles.FirstOrDefault(x => x.ArchiveName == archiveName && x.Name == name);
         }
 
         public IList<ISubfile> GetSubfiles(string archiveName)
         {
-            var files = Archive.Files.Where(x => x.ArchiveName == archiveName).ToList();
+            var files = totalFiles.Where(x => x.ArchiveName == archiveName).ToList();
 
             for (int i = 0; i < files.Count; i++)
             {
@@ -212,7 +210,7 @@ namespace SB3Utility
                 throw new Exception("Couldn't find the subfile " + archiveName + "/" + name);
             }
 
-            return (file.Source as ArchiveFileSource).GetRawStream();
+            return file.GetRawStream();
         }
 
         [Plugin]
@@ -231,6 +229,29 @@ namespace SB3Utility
                     using (Stream stream = (subfile.Source as ArchiveFileSource).GetRawStream())
                         stream.CopyTo(fs);
                 }
+        }
+
+        [Plugin]
+        public void ExportPPx([DefaultVar]string path)
+        {
+            if (path == String.Empty)
+            {
+                path = @".\";
+            }
+            DirectoryInfo dir = new DirectoryInfo(path);
+            if (!dir.Exists)
+            {
+                dir.Create();
+            }
+
+            foreach (var file in Archive.Files)
+            {
+                DirectoryInfo arcDir = new DirectoryInfo(dir.FullName + "\\" + file.ArchiveName);
+                if (!arcDir.Exists)
+                    arcDir.Create();
+
+                ExportSubfile(file.ArchiveName, file.Name, arcDir.FullName + "\\" + file.Name);
+            }
         }
 
         [Plugin]

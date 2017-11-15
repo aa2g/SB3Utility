@@ -778,21 +778,23 @@ namespace SB3Utility
 			removeToolStripMenuItem_Click(sender, e);
 		}
 
-		private void saveppToolStripMenuItem_Click(object sender, EventArgs e)
+        void ClearChanges()
         {
-            throw new NotImplementedException();
-            /*
+            InitSubfileLists(false);
+            Changed = false;
+        }
+
+        private void saveppToolStripMenuItem_Click(object sender, EventArgs e)
+        {
             try
 			{
-				BackgroundWorker worker = (BackgroundWorker)Gui.Scripting.RunScript(EditorVar + ".SavePP(keepBackup=" + keepBackupToolStripMenuItem.Checked + ", backupExtension=\"" + (string)Gui.Config["BackupExtensionPP"] + "\", background=True)");
-				ShowBlockingDialog(Editor.Parser.FilePath, worker);
-				ClearChanges();
+				Gui.Scripting.RunScript(EditorVar + ".SavePPx()");
+                ClearChanges();
 			}
 			catch (Exception ex)
 			{
 				Utility.ReportException(ex);
 			}
-            */
 		}
 
 		private void saveppAsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -863,8 +865,6 @@ namespace SB3Utility
 
 		private void addFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
-            /*
 			try
 			{
 				if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -888,7 +888,7 @@ namespace SB3Utility
 					}
 					foreach (string path in openFileDialog1.FileNames)
 					{
-						Gui.Scripting.RunScript(EditorVar + ".AddSubfile(path=\"" + path + "\", replace=True)");
+						Gui.Scripting.RunScript(EditorVar + ".AddSubfile(arcname=\"" + comboBoxArchives.Text + "\", path=\"" + path + "\", replace=True)");
 						Changed = Changed;
 					}
 
@@ -899,7 +899,6 @@ namespace SB3Utility
 			{
 				Utility.ReportException(ex);
 			}
-            */
 		}
 
 		bool CloseEditors(string title, List<string> editors)
@@ -927,8 +926,6 @@ namespace SB3Utility
 
 		private void removeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
-            /*
 			try
 			{
 				bool removed = false;
@@ -941,7 +938,7 @@ namespace SB3Utility
 					}
 					foreach (ListViewItem item in xxSubfilesList.SelectedItems)
 					{
-						IWriteFile writeFile = (IWriteFile)item.Tag;
+                        ISubfile writeFile = (ISubfile)item.Tag;
 
 						if (ChildParserVars.ContainsKey(writeFile.Name))
 						{
@@ -953,7 +950,7 @@ namespace SB3Utility
 							ChildForms[writeFile.Name].Close();
 						}
 
-						Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(name=\"" + writeFile.Name + "\")");
+						Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(arcname=\"" + writeFile.ArchiveName + "\", name=\"" + writeFile.Name + "\")");
 						removed = true;
 					}
 				}
@@ -965,7 +962,7 @@ namespace SB3Utility
 					}
 					foreach (ListViewItem item in xaSubfilesList.SelectedItems)
 					{
-						IWriteFile writeFile = (IWriteFile)item.Tag;
+                        ISubfile writeFile = (ISubfile)item.Tag;
 
 						if (ChildParserVars.ContainsKey(writeFile.Name))
 						{
@@ -977,17 +974,17 @@ namespace SB3Utility
 							ChildForms[writeFile.Name].Close();
 						}
 
-						Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(name=\"" + writeFile.Name + "\")");
-						removed = true;
+                        Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(arcname=\"" + writeFile.ArchiveName + "\", name=\"" + writeFile.Name + "\")");
+                        removed = true;
 					}
 				}
 				else if (tabControlSubfiles.SelectedTab == tabPageImageSubfiles)
 				{
 					foreach (ListViewItem item in imageSubfilesList.SelectedItems)
 					{
-						IWriteFile writeFile = (IWriteFile)item.Tag;
-						Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(name=\"" + writeFile.Name + "\")");
-						removed = true;
+                        ISubfile writeFile = (ISubfile)item.Tag;
+                        Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(arcname=\"" + writeFile.ArchiveName + "\", name=\"" + writeFile.Name + "\")");
+                        removed = true;
 					}
 				}
 				else if (tabControlSubfiles.SelectedTab == tabPageSoundSubfiles)
@@ -995,9 +992,9 @@ namespace SB3Utility
 					foreach (ListViewItem item in soundSubfilesList.SelectedItems)
 					{
 						item.Selected = false;
-						IWriteFile writeFile = (IWriteFile)item.Tag;
-						Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(name=\"" + writeFile.Name + "\")");
-						removed = true;
+                        ISubfile writeFile = (ISubfile)item.Tag;
+                        Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(arcname=\"" + writeFile.ArchiveName + "\", name=\"" + writeFile.Name + "\")");
+                        removed = true;
 					}
 				}
 				else if (tabControlSubfiles.SelectedTab == tabPageOtherSubfiles)
@@ -1008,9 +1005,9 @@ namespace SB3Utility
 					}
 					foreach (ListViewItem item in otherSubfilesList.SelectedItems)
 					{
-						IWriteFile writeFile = (IWriteFile)item.Tag;
-						Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(name=\"" + writeFile.Name + "\")");
-						removed = true;
+                        ISubfile writeFile = (ISubfile)item.Tag;
+                        Gui.Scripting.RunScript(EditorVar + ".RemoveSubfile(arcname=\"" + writeFile.ArchiveName + "\", name=\"" + writeFile.Name + "\")");
+                        removed = true;
 					}
 				}
 
@@ -1024,7 +1021,6 @@ namespace SB3Utility
 			{
 				Utility.ReportException(ex);
 			}
-            */
 		}
 
 		private bool FindAndCloseEditorsForRemoval(ListView listView)
@@ -1216,23 +1212,20 @@ namespace SB3Utility
 
 		private void exportPPToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
-            /*
 			try
 			{
-				folderBrowserDialog1.SelectedPath = Path.GetDirectoryName(this.Editor.Parser.FilePath);
+				folderBrowserDialog1.SelectedPath = Path.GetDirectoryName(this.Editor.Archive.Filename);
 				folderBrowserDialog1.RootFolder = Environment.SpecialFolder.MyComputer;
-				folderBrowserDialog1.Description = "Attention! " + Editor.Parser.Subfiles.Count + " subfiles to be exported.";
+				folderBrowserDialog1.Description = "Attention! " + Editor.Archive.Files.Count + " subfiles to be exported.";
 				if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
 				{
-					Gui.Scripting.RunScript("ExportPP(parser=" + ParserVar + ", path=\"" + folderBrowserDialog1.SelectedPath + "\")");
+					Gui.Scripting.RunScript(EditorVar + ".ExportPPx(\"" + folderBrowserDialog1.SelectedPath + "\")");
 				}
 			}
 			catch (Exception ex)
 			{
 				Utility.ReportException(ex);
 			}
-            */
 		}
 
 		private void exportSubfilesToolStripMenuItem_Click(object sender, EventArgs e)
