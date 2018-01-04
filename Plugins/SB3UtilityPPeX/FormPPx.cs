@@ -751,8 +751,8 @@ namespace SB3Utility
 					return;
 				if (e.IsSelected)
 				{
-					IReadFile subfile = (IReadFile)e.Item.Tag;
-					Stream stream = (Stream)Gui.Scripting.RunScript(EditorVar + ".ReadSubfile(name=\"" + subfile.Name + "\")", false);
+                    ISubfile subfile = (ISubfile)e.Item.Tag;
+                    Stream stream = (Stream)Gui.Scripting.RunScript($"{EditorVar}.ReadSubfile(name=\"{subfile.EmulatedName}\", archiveName=\"{subfile.EmulatedArchiveName}\")", false);
 					byte[] soundBuf;
 					using (BinaryReader reader = new BinaryReader(stream))
 					{
