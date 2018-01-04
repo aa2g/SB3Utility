@@ -1,6 +1,4 @@
-﻿extern alias _PPeX;
-using PPeX = _PPeX.PPeX;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,7 +8,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Linq;
 using WeifenLuo.WinFormsUI.Docking;
-using _PPeX::PPeX;
+using PPeX;
 
 namespace SB3Utility
 {
@@ -147,14 +145,13 @@ namespace SB3Utility
 				subfileListViews.Add(soundSubfilesList);
 				subfileListViews.Add(otherSubfilesList);
                 
-				foreach (string archive in Editor.Archive.Files.Select(x => x.ArchiveName).Distinct())
+				foreach (string archive in Editor.Archive.Files.Select(x => x.EmulatedArchiveName).Distinct().OrderBy(x => x))
 				{
 					if (!archive.StartsWith("_"))
                     {
                         ComboBoxItem item = new ComboBoxItem(archive, Color.Black);
                         comboBoxArchives.Items.Add(item);
                     }
-					
 				}
 				comboBoxArchives.SelectedIndexChanged += new EventHandler(comboBoxArchives_SelectedIndexChanged);
                 comboBoxArchives.SelectedIndex = 0;
@@ -259,7 +256,7 @@ namespace SB3Utility
 
 			foreach (ISubfile file in Editor.GetSubfiles(comboBoxArchives.Text))
 			{
-				ListViewItem item = new ListViewItem(file.Name);
+				ListViewItem item = new ListViewItem(file.EmulatedName);
 				item.Tag = file;
 
                 /*
@@ -272,10 +269,10 @@ namespace SB3Utility
 
                 Color encodedColor = Color.LightSkyBlue;
 
-                string ext = Path.GetExtension(file.Name).ToLower();
-				if (ext.Equals(".xx") || ext.Equals(".xx2") || ext.Equals(".xx3"))
+                string ext = Path.GetExtension(file.EmulatedName).ToLower();
+				if (ext.Equals(".xx"))
 				{
-                    if (file.Type == ArchiveFileType.Xx2Mesh || file.Type == ArchiveFileType.Xx3Mesh)
+                    if (file.Type == ArchiveFileType.Xx2Mesh || file.Type == ArchiveFileType.Xx3Mesh || file.Type == ArchiveFileType.Xx4Mesh)
                     {
                         item.BackColor = encodedColor;
                     }
@@ -289,7 +286,12 @@ namespace SB3Utility
 				}
 				else if (ext.Equals(".xa"))
 				{
-					xaFiles.Add(item);
+                    if (file.Type == ArchiveFileType.Xa2Animation)
+                    {
+                        item.BackColor = encodedColor;
+                    }
+
+                    xaFiles.Add(item);
 					if (itemWidth > xaSubfilesListHeader.Width)
 					{
 						xaSubfilesListHeader.Width = itemWidth;

@@ -1,6 +1,4 @@
-﻿extern alias _PPeX;
-using PPeX = _PPeX.PPeX;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +9,8 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
 using System.Linq;
-using _PPeX.PPeX;
+using PPeX;
+using SB3UtilityPPeX;
 
 namespace SB3Utility
 {
@@ -178,15 +177,15 @@ namespace SB3Utility
             return totalFiles.Any(x => x.ArchiveName == archiveName && x.Name == name);
         }
 
-        public ISubfile GetSubfile(string archiveName, string name)
+        public SubfileHybrid GetSubfile(string archiveName, string name)
         {
 #warning should names be case sensitive?
-            return totalFiles.FirstOrDefault(x => x.ArchiveName == archiveName && x.Name == name);
+            return new SubfileHybrid(totalFiles.FirstOrDefault(x => x.EmulatedArchiveName == archiveName && x.EmulatedName == name));
         }
 
-        public IList<ISubfile> GetSubfiles(string archiveName)
+        public IList<SubfileHybrid> GetSubfiles(string archiveName)
         {
-            var files = totalFiles.Where(x => x.ArchiveName == archiveName).ToList();
+            var files = totalFiles.Where(x => x.EmulatedArchiveName == archiveName).Select(x => new SubfileHybrid(x)).ToList();
 
             return files;
         }

@@ -33,7 +33,7 @@
   <ItemGroup>
     <Reference Include="PPeX">
       <HintPath>..\..\..\PPeX\PPeX\bin\Debug\PPeX.dll</HintPath>
-      <Aliases>_PPeX</Aliases>
+      <Aliases>global</Aliases>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -60,6 +60,7 @@
     </Compile>
     <Compile Include="ppxEditor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SubfileHybrid.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FormPPx.resx">
