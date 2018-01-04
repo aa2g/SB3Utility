@@ -18,5 +18,16 @@ namespace SB3Utility
             }
             return null;
         }
+
+        [Plugin]
+        public static lstParser OpenLST([DefaultVar]ppxEditor editor, string arcname, string name)
+        {
+            var subfile = editor.GetSubfile(arcname, name);
+            if (editor.FindSubfile(arcname, name))
+            {
+                return new lstParser(editor.ReadSubfile(arcname, name), subfile.Name);
+            }
+            return null;
+        }
     }
 }

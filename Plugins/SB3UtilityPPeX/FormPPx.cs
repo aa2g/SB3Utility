@@ -515,7 +515,7 @@ namespace SB3Utility
                     childParserVar = Gui.Scripting.GetNextVariable("xxParser");
 					Gui.Scripting.RunScript($"{childParserVar} = OpenXX(editor={EditorVar}, arcname=\"{archiveName}\", name=\"{name}\")");
                     //Gui.Scripting.RunScript(EditorVar + ".ReplaceSubfile(file=" + childParserVar + ")");
-                    Report.ReportLog("DEBUG: Supposed to be replacing a file here, but we can't write yet");
+                    Report.ReportLog("WARNING: Supposed to be replacing a file here, but we can't write yet");
 					ChildParserVars.Add(name, childParserVar);
 
 					foreach (ListViewItem item in xxSubfilesList.Items)
@@ -1419,37 +1419,33 @@ namespace SB3Utility
 
 		private void OpenOtherSubfilesList()
         {
-            throw new NotImplementedException();
-            /*
 			foreach (ListViewItem item in otherSubfilesList.SelectedItems)
 			{
-				IWriteFile writeFile = (IWriteFile)item.Tag;
-				if (writeFile.Name.ToUpper().EndsWith(".LST"))
+                ISubfile subfile = (ISubfile)item.Tag;
+				if (subfile.EmulatedName.ToUpper().EndsWith(".LST"))
 				{
-					FormLST formLST = (FormLST)Gui.Scripting.RunScript(FormVariable + ".OpenLSTSubfile(name=\"" + writeFile.Name + "\")", false);
+					FormLST formLST = (FormLST)Gui.Scripting.RunScript($"{FormVariable}.OpenLSTSubfile(arcname=\"{subfile.EmulatedArchiveName}\", name=\"{subfile.EmulatedName}\")", false);
 					formLST.Activate();
 				}
 
-				string extension = Path.GetExtension(writeFile.Name).ToUpper();
+				string extension = Path.GetExtension(subfile.EmulatedName).ToUpper();
 				List<ExternalTool> toolList;
 				if (ppEditor.ExternalTools.TryGetValue(extension, out toolList))
 				{
-					if (ToolOutputEditor.SelectTool(extension, (int)Editor.Parser.Format.ppFormatIdx, true) == null)
-					{
-						throw new Exception("No tool registered for " + extension + " supports ppFormat " + Editor.Parser.Format.ppFormatIdx + " decoding");
-					}
-					FormToolOutput formToolOutput = (FormToolOutput)Gui.Scripting.RunScript(FormVariable + ".OpenToolOutput(name=\"" + writeFile.Name + "\")", false);
-					formToolOutput.Activate();
-				}
+                    throw new Exception("No tool registered for " + extension + " supports ppFormat [PPEX] decoding");
+                    //if (ToolOutputEditor.SelectTool(extension, (int)Editor.Parser.Format.ppFormatIdx, true) == null)
+                    //{
+                    //	throw new Exception("No tool registered for " + extension + " supports ppFormat " + Editor.Parser.Format.ppFormatIdx + " decoding");
+                    //}
+                    //FormToolOutput formToolOutput = (FormToolOutput)Gui.Scripting.RunScript(FormVariable + ".OpenToolOutput(name=\"" + writeFile.Name + "\")", false);
+                    //formToolOutput.Activate();
+                }
 			}
-            */
 		}
 
 		[Plugin]
-		public FormLST OpenLSTSubfile(string name)
+		public FormLST OpenLSTSubfile(string arcname, string name)
         {
-            throw new NotImplementedException();
-            /*
 			DockContent child;
 			if (!ChildForms.TryGetValue(name, out child))
 			{
@@ -1458,23 +1454,24 @@ namespace SB3Utility
 				if (!ChildParserVars.TryGetValue(name, out childParserVar))
 				{
 					childParserVar = Gui.Scripting.GetNextVariable("lstParser");
-					Gui.Scripting.RunScript(childParserVar + " = OpenLST(parser=" + ParserVar + ", name=\"" + name + "\")");
-					Gui.Scripting.RunScript(EditorVar + ".ReplaceSubfile(file=" + childParserVar + ")");
-					ChildParserVars.Add(name, childParserVar);
+					Gui.Scripting.RunScript($"{childParserVar} = OpenLST(editor={EditorVar}, arcname=\"{arcname}\", name=\"{name}\")");
+                    //Gui.Scripting.RunScript(EditorVar + ".ReplaceSubfile(file=" + childParserVar + ")");
+                    Report.ReportLog("WARNING: Supposed to be replacing a file here, but we can't write yet");
+                    ChildParserVars.Add(name, childParserVar);
 
 					foreach (ListViewItem item in otherSubfilesList.Items)
 					{
-						if (((IWriteFile)item.Tag).Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+						if (((ISubfile)item.Tag).Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
 						{
 							item.Font = new Font(item.Font, FontStyle.Bold);
-							changed = item.Tag is ppSwapfile || item.Tag is RawFile;
-							item.Tag = Gui.Scripting.Variables[childParserVar];
+							//changed = item.Tag is ppSwapfile || item.Tag is RawFile;
+							//item.Tag = Gui.Scripting.Variables[childParserVar];
 							break;
 						}
 					}
 				}
 
-				child = new FormLST(Editor.Parser, childParserVar);
+				child = new FormLST(Editor, childParserVar);
 				((FormLST)child).Changed = changed;
 				child.FormClosing += new FormClosingEventHandler(ChildForms_FormClosing);
 				child.Tag = name;
@@ -1482,7 +1479,6 @@ namespace SB3Utility
 			}
 
 			return child as FormLST;
-            */
 		}
 
 		[Plugin]
