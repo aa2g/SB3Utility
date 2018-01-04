@@ -11,6 +11,7 @@ using System.Xml;
 using System.Linq;
 using PPeX;
 using SB3UtilityPPeX;
+using PPeX.Encoders;
 
 namespace SB3Utility
 {
@@ -174,18 +175,18 @@ namespace SB3Utility
 
         public bool FindSubfile(string archiveName, string name)
         {
-            return totalFiles.Any(x => x.ArchiveName == archiveName && x.Name == name);
+            return totalFiles.Any(x => x.EmulatedArchiveName == archiveName && x.EmulatedName == name);
         }
 
-        public SubfileHybrid GetSubfile(string archiveName, string name)
+        public ISubfile GetSubfile(string archiveName, string name)
         {
 #warning should names be case sensitive?
-            return new SubfileHybrid(totalFiles.FirstOrDefault(x => x.EmulatedArchiveName == archiveName && x.EmulatedName == name));
+            return totalFiles.FirstOrDefault(x => x.EmulatedArchiveName == archiveName && x.EmulatedName == name);
         }
 
-        public IList<SubfileHybrid> GetSubfiles(string archiveName)
+        public IList<ISubfile> GetSubfiles(string archiveName)
         {
-            var files = totalFiles.Where(x => x.EmulatedArchiveName == archiveName).Select(x => new SubfileHybrid(x)).ToList();
+            var files = totalFiles.Where(x => x.EmulatedArchiveName == archiveName).ToList();
 
             return files;
         }
@@ -200,7 +201,8 @@ namespace SB3Utility
                 throw new Exception("Couldn't find the subfile " + archiveName + "/" + name);
             }
 
-            return file.GetRawStream();
+            using (IEncoder encoder = EncoderFactory.GetEncoder(file, Archive))
+                return encoder.Decode();
         }
 
         [Plugin]
@@ -209,7 +211,8 @@ namespace SB3Utility
             var subfile = GetSubfile(arcname, name);
 
             using (FileStream fs = new FileStream(path, FileMode.Create))
-            using (Stream stream = subfile.GetRawStream())
+            using (IEncoder encoder = EncoderFactory.GetEncoder(subfile, Archive))
+            using (Stream stream = encoder.Decode())
                 stream.CopyTo(fs);
         }
 
@@ -228,11 +231,11 @@ namespace SB3Utility
 
             foreach (var file in Archive.Files)
             {
-                DirectoryInfo arcDir = new DirectoryInfo(dir.FullName + "\\" + file.ArchiveName);
+                DirectoryInfo arcDir = new DirectoryInfo(dir.FullName + "\\" + file.EmulatedArchiveName);
                 if (!arcDir.Exists)
                     arcDir.Create();
 
-                ExportSubfile(file.ArchiveName, file.Name, arcDir.FullName + "\\" + file.Name);
+                ExportSubfile(file.EmulatedArchiveName, file.EmulatedName, arcDir.FullName + "\\" + file.EmulatedName);
             }
         }
 

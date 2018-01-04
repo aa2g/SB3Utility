@@ -489,28 +489,20 @@ namespace SB3Utility
 
 		public List<FormXX> OpenXXSubfilesList()
 		{
-            throw new NotImplementedException();
+            List<FormXX> list = new List<FormXX>(xxSubfilesList.SelectedItems.Count);
+            foreach (ListViewItem item in xxSubfilesList.SelectedItems)
+            {
+                ISubfile subfile = (ISubfile)item.Tag;
+                FormXX formXX = (FormXX)Gui.Scripting.RunScript($"{FormVariable}.OpenXXSubfile(name=\"{subfile.EmulatedName}\", archiveName=\"{subfile.EmulatedArchiveName}\")", false);
+                formXX.Activate();
+                list.Add(formXX);
+            }
+            return list;
+        }
 
-            /*
-
-			List<FormXX> list = new List<FormXX>(xxSubfilesList.SelectedItems.Count);
-			foreach (ListViewItem item in xxSubfilesList.SelectedItems)
-			{
-				IWriteFile writeFile = (IWriteFile)item.Tag;
-				FormXX formXX = (FormXX)Gui.Scripting.RunScript(FormVariable + ".OpenXXSubfile(name=\"" + writeFile.Name + "\")", false);
-				formXX.Activate();
-				list.Add(formXX);
-			}
-			return list;
-            */
-		}
-
-		[Plugin]
-		public FormXX OpenXXSubfile(string name)
+        [Plugin]
+		public FormXX OpenXXSubfile(string archiveName, string name)
 		{
-            throw new NotImplementedException();
-
-            /*
 			DockContent child;
 			if (!ChildForms.TryGetValue(name, out child))
 			{
@@ -518,32 +510,33 @@ namespace SB3Utility
 				bool changed = true;
 				if (!ChildParserVars.TryGetValue(name, out childParserVar))
 				{
-					childParserVar = Gui.Scripting.GetNextVariable("xxParser");
-					Gui.Scripting.RunScript(childParserVar + " = OpenXX(parser=" + ParserVar + ", name=\"" + name + "\")");
-					Gui.Scripting.RunScript(EditorVar + ".ReplaceSubfile(file=" + childParserVar + ")");
+                    string stream = $"{EditorVar}.ReadSubfile(name=\"{name}\", archiveName=\"{archiveName}\")";
+
+                    childParserVar = Gui.Scripting.GetNextVariable("xxParser");
+					Gui.Scripting.RunScript($"{childParserVar} = OpenXX(editor={EditorVar}, arcname=\"{archiveName}\", name=\"{name}\")");
+                    //Gui.Scripting.RunScript(EditorVar + ".ReplaceSubfile(file=" + childParserVar + ")");
+                    Report.ReportLog("DEBUG: Supposed to be replacing a file here, but we can't write yet");
 					ChildParserVars.Add(name, childParserVar);
 
 					foreach (ListViewItem item in xxSubfilesList.Items)
 					{
-						if (((IWriteFile)item.Tag).Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+						if (((ISubfile)item.Tag).EmulatedName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
 						{
 							item.Font = new Font(item.Font, FontStyle.Bold);
-							changed = item.Tag is ppSwapfile || item.Tag is RawFile;
-							item.Tag = Gui.Scripting.Variables[childParserVar];
+							//changed = item.Tag is ppSwapfile || item.Tag is RawFile;
+							//item.Tag = Gui.Scripting.Variables[childParserVar];
 							break;
 						}
 					}
 				}
-
-				child = new FormXX(Editor.Parser, childParserVar);
-				((FormXX)child).Changed = changed;
+                child = new FormXX(Editor, childParserVar);
+                ((FormXX)child).Changed = changed;
 				child.FormClosing += new FormClosingEventHandler(ChildForms_FormClosing);
 				child.Tag = name;
 				ChildForms.Add(name, child);
 			}
 
 			return child as FormXX;
-            */
 		}
 
 		public List<FormXA> OpenXASubfilesList()
@@ -1267,7 +1260,7 @@ namespace SB3Utility
 						{
 							ISubfile subfile = (ISubfile)item.Tag;
                             ArchiveFileSource source = subfile.Source as ArchiveFileSource;
-                            Gui.Scripting.RunScript(EditorVar + ".ExportSubfile(arcname=\"" + source.ArchiveName + "\", name=\"" + source.Name + "\", path=\"" + folderBrowserDialog1.SelectedPath + @"\" + subfile.Name + "\")");
+                            Gui.Scripting.RunScript(EditorVar + ".ExportSubfile(arcname=\"" + source.EmulatedArchiveName + "\", name=\"" + source.EmulatedName + "\", path=\"" + folderBrowserDialog1.SelectedPath + @"\" + subfile.EmulatedName + "\")");
                         }
 					}
 				}
