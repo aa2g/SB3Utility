@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using System.Drawing;
 using System.ComponentModel;
 using SlimDX;
-using SlimDX.Direct3D11;
 
 namespace SB3Utility
 {
@@ -25,7 +23,7 @@ namespace SB3Utility
 			}
 		}
 
-		public static void SelectTabWithoutLosingFocus(this TabControl tab, TabPage newTab)
+		public static void SelectTabWithoutLoosingFocus(this TabControl tab, TabPage newTab)
 		{
 			tab.Enabled = false;
 			tab.SelectedTab = newTab;
@@ -46,28 +44,6 @@ namespace SB3Utility
 				if (c.HasChildren)
 				{
 					SaveDesignSizes(c.Controls);
-				}
-			}
-		}
-
-		public static void AdjustSize(this Form f, Size dialogSize, SizeF startSize)
-		{
-			if (dialogSize.Width != 0 && dialogSize.Height != 0)
-			{
-				if (f.Width != dialogSize.Width || f.Height != dialogSize.Height)
-				{
-					f.Width = dialogSize.Width;
-					f.Height = dialogSize.Height;
-					f.ResizeControls(startSize);
-				}
-			}
-			else
-			{
-				if (f.Width != startSize.Width || f.Height != startSize.Height)
-				{
-					f.Width = (int)startSize.Width;
-					f.Height = (int)startSize.Height;
-					f.ResetControls();
 				}
 			}
 		}
@@ -99,20 +75,13 @@ namespace SB3Utility
 		{
 			foreach (Control c in controls)
 			{
-				bool visible = c.Visible;
-				if (visible)
-				{
-					c.Hide();
-				}
+				c.Hide();
 				c.Left = ((Tuple<int, int, int, int, float>)c.Tag).Item1;
 				c.Top = ((Tuple<int, int, int, int, float>)c.Tag).Item2;
 				c.Width = ((Tuple<int, int, int, int, float>)c.Tag).Item3;
 				c.Height = ((Tuple<int, int, int, int, float>)c.Tag).Item4;
 				c.Font = new System.Drawing.Font(c.Font.FontFamily.Name, ((Tuple<int, int, int, int, float>)c.Tag).Item5);
-				if (visible)
-				{
-					c.Show();
-				}
+				c.Show();
 
 				if (c.HasChildren)
 				{
@@ -162,7 +131,7 @@ namespace SB3Utility
 
 		public static string ToFloatString(this float value)
 		{
-			return value.ToString("0.##################", Utility.CultureUS);
+			return value.ToString("0.############", Utility.CultureUS);
 		}
 
 		public static string ToFloat6String(this float value)
@@ -260,12 +229,12 @@ namespace SB3Utility
 			for (; (buffer[len] = reader.ReadByte()) != 0; len++)
 			{
 			}
-			return System.Text.UTF8Encoding.UTF8.GetString(buffer, 0, len);
+			return System.Text.Encoding.ASCII.GetString(buffer, 0, len);
 		}
 
 		public static void WriteName0(this BinaryWriter writer, string s)
 		{
-			writer.Write(System.Text.UTF8Encoding.UTF8.GetBytes(s));
+			writer.Write(System.Text.ASCIIEncoding.ASCII.GetBytes(s));
 			writer.Write((byte)0);
 		}
 
@@ -295,8 +264,7 @@ namespace SB3Utility
 			int len = reader.ReadInt32();
 			int align4 = (len & 3) > 0 ? 4 - (len & 3) : 0;
 			byte[] buffer = reader.ReadBytes(len + align4);
-			System.Text.Encoding enc = new System.Text.UTF8Encoding(false, true);
-			return enc.GetString(buffer, 0, len);
+			return System.Text.UTF8Encoding.UTF8.GetString(buffer, 0, len);
 		}
 
 		public static void WriteNameA4U8(this BinaryWriter writer, string name)
@@ -416,16 +384,6 @@ namespace SB3Utility
 			writer.Write(-Math.Abs(color.Green));
 			writer.Write(-Math.Abs(color.Blue));
 			writer.Write(-Math.Abs(color.Alpha));
-		}
-
-		public static Color4 ReadColor4AsIs(this BinaryReader reader)
-		{
-			Color4 color = new Color4();
-			color.Red = reader.ReadSingle();
-			color.Green = reader.ReadSingle();
-			color.Blue = reader.ReadSingle();
-			color.Alpha = reader.ReadSingle();
-			return color;
 		}
 
 		public static void WriteUnnegated(this BinaryWriter writer, Color4 color)
@@ -562,12 +520,6 @@ namespace SB3Utility
 		}
 		#endregion
 
-		public static ushort ReadUInt16BE(this BinaryReader reader)
-		{
-			byte[] bytes = reader.ReadBytes(2);
-			return (ushort)(bytes[0] << 8 | bytes[1]);
-		}
-
 		public static Int32 ReadInt32BE(this BinaryReader reader)
 		{
 			byte[] bytes = reader.ReadBytes(4);
@@ -584,13 +536,6 @@ namespace SB3Utility
 			bytes[1] = bytes[2];
 			bytes[2] = swap;
 			writer.Write(bytes);
-		}
-
-		public static long ReadUInt64BE(this BinaryReader reader)
-		{
-			byte[] bytes = reader.ReadBytes(8);
-			return (long)bytes[0] << 44 | (long)bytes[1] << 40 | (long)bytes[2] << 36 | (long)bytes[3] << 32 |
-				(long)bytes[4] << 24 | (long)bytes[5] << 16 | (long)bytes[6] << 8 | (long)bytes[7];
 		}
 
 		public static List<T> ReadList<T>(BinaryReader reader, Func<T> del)
@@ -611,16 +556,6 @@ namespace SB3Utility
 			{
 				del(list[i]);
 			}
-		}
-
-		public static Core.DirectionalLight GetLight(this Device dev, int id)
-		{
-			return Gui.Renderer.Lights[id];
-		}
-
-		public static void SetLight(this Device dev, int id, Core.DirectionalLight light)
-		{
-			Gui.Renderer.Lights[id] = light;
 		}
 	}
 }

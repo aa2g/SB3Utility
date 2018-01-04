@@ -52,7 +52,6 @@
 			this.ambientToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.specularToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.backgroundToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.checkBoxLockLight = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.numericSensitivity)).BeginInit();
 			this.menuStrip1.SuspendLayout();
 			this.SuspendLayout();
@@ -64,16 +63,16 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.panel1.Location = new System.Drawing.Point(12, 39);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(333, 198);
+			this.panel1.Size = new System.Drawing.Size(320, 198);
 			this.panel1.TabIndex = 0;
 			// 
 			// buttonCenterView
 			// 
 			this.buttonCenterView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.buttonCenterView.Location = new System.Drawing.Point(92, 251);
+			this.buttonCenterView.Location = new System.Drawing.Point(109, 251);
 			this.buttonCenterView.Name = "buttonCenterView";
-			this.buttonCenterView.Size = new System.Drawing.Size(73, 23);
-			this.buttonCenterView.TabIndex = 4;
+			this.buttonCenterView.Size = new System.Drawing.Size(75, 23);
+			this.buttonCenterView.TabIndex = 1;
 			this.buttonCenterView.TabStop = false;
 			this.buttonCenterView.Text = "Center View";
 			this.buttonCenterView.UseVisualStyleBackColor = true;
@@ -84,7 +83,7 @@
 			this.buttonResetPose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.buttonResetPose.Location = new System.Drawing.Point(12, 251);
 			this.buttonResetPose.Name = "buttonResetPose";
-			this.buttonResetPose.Size = new System.Drawing.Size(73, 23);
+			this.buttonResetPose.Size = new System.Drawing.Size(75, 23);
 			this.buttonResetPose.TabIndex = 2;
 			this.buttonResetPose.TabStop = false;
 			this.buttonResetPose.Text = "Reset Pose";
@@ -94,22 +93,22 @@
 			// numericSensitivity
 			// 
 			this.numericSensitivity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.numericSensitivity.Location = new System.Drawing.Point(299, 253);
+			this.numericSensitivity.Location = new System.Drawing.Point(281, 253);
 			this.numericSensitivity.Maximum = new decimal(new int[] {
             1000,
             0,
             0,
             0});
 			this.numericSensitivity.Name = "numericSensitivity";
-			this.numericSensitivity.Size = new System.Drawing.Size(46, 20);
-			this.numericSensitivity.TabIndex = 8;
+			this.numericSensitivity.Size = new System.Drawing.Size(51, 20);
+			this.numericSensitivity.TabIndex = 3;
 			this.numericSensitivity.TabStop = false;
 			// 
 			// label1
 			// 
 			this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(243, 256);
+			this.label1.Location = new System.Drawing.Point(221, 256);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(54, 13);
 			this.label1.TabIndex = 5;
@@ -127,7 +126,7 @@
             this.colorToolStripMenuItem});
 			this.menuStrip1.Location = new System.Drawing.Point(0, 0);
 			this.menuStrip1.Name = "menuStrip1";
-			this.menuStrip1.Size = new System.Drawing.Size(357, 24);
+			this.menuStrip1.Size = new System.Drawing.Size(344, 24);
 			this.menuStrip1.TabIndex = 13;
 			this.menuStrip1.Text = "menuStrip1";
 			// 
@@ -148,21 +147,21 @@
 			// 
 			this.wireframeToolStripMenuItem.CheckOnClick = true;
 			this.wireframeToolStripMenuItem.Name = "wireframeToolStripMenuItem";
-			this.wireframeToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+			this.wireframeToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
 			this.wireframeToolStripMenuItem.Text = "Wire&frame";
 			// 
 			// normalsToolStripMenuItem
 			// 
 			this.normalsToolStripMenuItem.CheckOnClick = true;
 			this.normalsToolStripMenuItem.Name = "normalsToolStripMenuItem";
-			this.normalsToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
-			this.normalsToolStripMenuItem.Text = "&Normals && Tangents";
+			this.normalsToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+			this.normalsToolStripMenuItem.Text = "&Normals";
 			// 
 			// bonesToolStripMenuItem
 			// 
 			this.bonesToolStripMenuItem.CheckOnClick = true;
 			this.bonesToolStripMenuItem.Name = "bonesToolStripMenuItem";
-			this.bonesToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+			this.bonesToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
 			this.bonesToolStripMenuItem.Text = "&Bones";
 			// 
 			// boneWeightsToolStripMenuItem
@@ -172,27 +171,27 @@
             this.strongBoneWeightsToolStripMenuItem,
             this.offBoneWeightsToolStripMenuItem});
 			this.boneWeightsToolStripMenuItem.Name = "boneWeightsToolStripMenuItem";
-			this.boneWeightsToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+			this.boneWeightsToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
 			this.boneWeightsToolStripMenuItem.Text = "Bone &Weights";
 			// 
 			// weakBoneWeightsToolStripMenuItem
 			// 
 			this.weakBoneWeightsToolStripMenuItem.Name = "weakBoneWeightsToolStripMenuItem";
-			this.weakBoneWeightsToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
+			this.weakBoneWeightsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.weakBoneWeightsToolStripMenuItem.Text = "&Weak";
 			this.weakBoneWeightsToolStripMenuItem.Click += new System.EventHandler(this.allBoneWeightsToolStripMenuItem_Click);
 			// 
 			// strongBoneWeightsToolStripMenuItem
 			// 
 			this.strongBoneWeightsToolStripMenuItem.Name = "strongBoneWeightsToolStripMenuItem";
-			this.strongBoneWeightsToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
+			this.strongBoneWeightsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.strongBoneWeightsToolStripMenuItem.Text = "&Strong";
 			this.strongBoneWeightsToolStripMenuItem.Click += new System.EventHandler(this.allBoneWeightsToolStripMenuItem_Click);
 			// 
 			// offBoneWeightsToolStripMenuItem
 			// 
 			this.offBoneWeightsToolStripMenuItem.Name = "offBoneWeightsToolStripMenuItem";
-			this.offBoneWeightsToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
+			this.offBoneWeightsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.offBoneWeightsToolStripMenuItem.Text = "&Off";
 			this.offBoneWeightsToolStripMenuItem.Click += new System.EventHandler(this.allBoneWeightsToolStripMenuItem_Click);
 			// 
@@ -200,14 +199,14 @@
 			// 
 			this.cullingToolStripMenuItem.CheckOnClick = true;
 			this.cullingToolStripMenuItem.Name = "cullingToolStripMenuItem";
-			this.cullingToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+			this.cullingToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
 			this.cullingToolStripMenuItem.Text = "&Culling";
 			// 
 			// centerViewAutomaticallyToolStripMenuItem
 			// 
 			this.centerViewAutomaticallyToolStripMenuItem.CheckOnClick = true;
 			this.centerViewAutomaticallyToolStripMenuItem.Name = "centerViewAutomaticallyToolStripMenuItem";
-			this.centerViewAutomaticallyToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+			this.centerViewAutomaticallyToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
 			this.centerViewAutomaticallyToolStripMenuItem.Text = "&Auto Center View";
 			// 
 			// colorToolStripMenuItem
@@ -249,23 +248,11 @@
 			this.backgroundToolStripMenuItem.Text = "&Background...";
 			this.backgroundToolStripMenuItem.Click += new System.EventHandler(this.backgroundToolStripMenuItem_Click);
 			// 
-			// checkBoxLockLight
-			// 
-			this.checkBoxLockLight.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.checkBoxLockLight.Appearance = System.Windows.Forms.Appearance.Button;
-			this.checkBoxLockLight.Location = new System.Drawing.Point(172, 251);
-			this.checkBoxLockLight.Name = "checkBoxLockLight";
-			this.checkBoxLockLight.Size = new System.Drawing.Size(65, 23);
-			this.checkBoxLockLight.TabIndex = 6;
-			this.checkBoxLockLight.Text = "Lock Light";
-			this.checkBoxLockLight.UseVisualStyleBackColor = true;
-			// 
 			// FormRenderer
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(357, 285);
-			this.Controls.Add(this.checkBoxLockLight);
+			this.ClientSize = new System.Drawing.Size(344, 285);
 			this.Controls.Add(this.numericSensitivity);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.buttonResetPose);
@@ -308,6 +295,5 @@
 		private System.Windows.Forms.ToolStripMenuItem weakBoneWeightsToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem strongBoneWeightsToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem offBoneWeightsToolStripMenuItem;
-		private System.Windows.Forms.CheckBox checkBoxLockLight;
 	}
 }

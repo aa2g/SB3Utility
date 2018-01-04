@@ -414,7 +414,7 @@ namespace SB3Utility
 				}
 				if (opening && subfileListViews[i].Items.Count > 0 && first)
 				{
-					tabControlSubfiles.SelectTabWithoutLosingFocus(tabPage);
+					tabControlSubfiles.SelectTabWithoutLoosingFocus(tabPage);
 					first = false;
 				}
 			}

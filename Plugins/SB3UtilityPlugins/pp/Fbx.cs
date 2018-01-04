@@ -16,7 +16,7 @@ namespace SB3Utility
 		public static void WorkspaceFbx(string path, string variable)
 		{
 			string importVar = Gui.Scripting.GetNextVariable("importFbx");
-			var importer = (Fbx.Importer)Gui.Scripting.RunScript(importVar + " = ImportFbx(path=\"" + path + "\", negateQuaternionFlips=" + (bool)Gui.Config["FbxImportAnimationNegateQuaternionFlips"] + ", forceTypeSampled=" + (bool)Gui.Config["FbxImportAnimationForceTypeSampled"] + ")");
+			var importer = (Fbx.Importer)Gui.Scripting.RunScript(importVar + " = ImportFbx(path=\"" + path + "\", negateQuaternionFlips=" + (bool)Gui.Config["FbxImportAnimationNegateQuaternionFlips"] + ")");
 
 			string editorVar = Gui.Scripting.GetNextVariable("importedEditor");
 			var editor = (ImportedEditor)Gui.Scripting.RunScript(editorVar + " = ImportedEditor(" + importVar + ")");
@@ -48,9 +48,9 @@ namespace SB3Utility
 		}
 
 		[Plugin]
-		public static Fbx.Importer ImportFbx([DefaultVar]string path, bool negateQuaternionFlips, bool forceTypeSampled)
+		public static Fbx.Importer ImportFbx([DefaultVar]string path, bool negateQuaternionFlips)
 		{
-			return new Fbx.Importer(path, negateQuaternionFlips, forceTypeSampled);
+			return new Fbx.Importer(path, negateQuaternionFlips);
 		}
 	}
 
@@ -80,14 +80,14 @@ namespace SB3Utility
 			return srt;
 		}
 
-		public static void Export(String path, IImported imp, int startKeyframe, int endKeyframe, bool linear, bool EulerFilter, float filterPrecision, String exportFormat, bool allFrames, bool allBones, bool skins, float boneSize, bool flatInbetween, bool compatibility)
+		public static void Export(String path, IImported imp, int startKeyframe, int endKeyframe, bool linear, bool EulerFilter, float filterPrecision, String exportFormat, bool allFrames, bool allBones, bool skins, bool compatibility)
 		{
-			Fbx.Exporter.Export(path, imp, startKeyframe, endKeyframe, linear, EulerFilter, filterPrecision, exportFormat, allFrames, allBones, skins, boneSize, flatInbetween, compatibility);
+			Fbx.Exporter.Export(path, imp, startKeyframe, endKeyframe, linear, EulerFilter, filterPrecision, exportFormat, allFrames, allBones, skins, compatibility);
 		}
 
-		public static void ExportMorph(String path, IImported imp, String exportFormat, bool morphMask, bool flatInbetween, bool skins, float boneSize, bool compatibility)
+		public static void ExportMorph(String path, IImported imp, String exportFormat, bool oneBlendShape, bool compatibility)
 		{
-			Fbx.Exporter.ExportMorph(path, imp, exportFormat, morphMask, flatInbetween, skins, boneSize, compatibility);
+			Fbx.Exporter.ExportMorph(path, imp, exportFormat, oneBlendShape, compatibility);
 		}
 
 		public static List<KeyValuePair<string, ImportedAnimationKeyframe[]>> CopyKeyframedAnimation(WorkspaceAnimation wsAnimation, int resampleCount, bool linear)
@@ -147,7 +147,7 @@ namespace SB3Utility
 			return newTrackList;
 		}
 
-		public static List<KeyValuePair<string, ImportedAnimationSampledTrack>> CopySampledAnimation(WorkspaceAnimation wsAnimation, int resampleCount, bool linear, bool EulerFilter, float filterPrecision, bool forceInterpolation = false)
+		public static List<KeyValuePair<string, ImportedAnimationSampledTrack>> CopySampledAnimation(WorkspaceAnimation wsAnimation, int resampleCount, bool linear)
 		{
 			List<ImportedAnimationSampledTrack> trackList = ((ImportedSampledAnimation)wsAnimation.importedAnimation).TrackList;
 			List<KeyValuePair<string, ImportedAnimationSampledTrack>> newTrackList = new List<KeyValuePair<string, ImportedAnimationSampledTrack>>(trackList.Count);
@@ -158,108 +158,95 @@ namespace SB3Utility
 					continue;
 
 				ImportedAnimationSampledTrack track = new ImportedAnimationSampledTrack();
-				bool interpolateTrack = forceInterpolation;
+				bool interpolateTrack = false;
 
+				Vector3?[] scalings = wsTrack.Scalings;
 				Vector3?[] newScalings = null;
-				Quaternion?[] newRotations = null;
-				Vector3?[] newTranslations = null;
-
-				if (!interpolateTrack)
+				if (resampleCount < 0 || scalings.Length == resampleCount)
 				{
-					Vector3?[] scalings = wsTrack.Scalings;
-					if (scalings != null)
+					newScalings = new Vector3?[scalings.Length];
+					for (int i = 0; i < scalings.Length; i++)
 					{
-						if (resampleCount < 0 || scalings.Length == resampleCount)
-						{
-							newScalings = new Vector3?[scalings.Length];
-							for (int i = 0; i < scalings.Length; i++)
-							{
-								Vector3? scale = scalings[i];
-								if (scale == null)
-									continue;
+						Vector3? scale = scalings[i];
+						if (scale == null)
+							continue;
 
-								newScalings[i] = scale.Value;
-							}
-						}
-						else
+						newScalings[i] = scale.Value;
+					}
+				}
+				else
+				{
+					if (scalings.Length < 1)
+					{
+						newScalings = new Vector3?[resampleCount];
+						for (int i = 0; i < newScalings.Length; i++)
 						{
-							if (scalings.Length < 1)
-							{
-								newScalings = new Vector3?[resampleCount];
-								for (int i = 0; i < newScalings.Length; i++)
-								{
-									newScalings[i] = new Vector3(1, 1, 1);
-								}
-							}
-							else
-							{
-								interpolateTrack = true;
-							}
+							newScalings[i] = new Vector3(1, 1, 1);
 						}
 					}
-
-					Quaternion?[] rotations = wsTrack.Rotations;
-					if (rotations != null)
+					else
 					{
-						if (resampleCount < 0 || rotations.Length == resampleCount)
-						{
-							newRotations = new Quaternion?[rotations.Length];
-							for (int i = 0; i < rotations.Length; i++)
-							{
-								Quaternion? rotate = rotations[i];
-								if (rotate == null)
-									continue;
+						interpolateTrack = true;
+					}
+				}
 
-								newRotations[i] = rotate.Value;
-							}
-						}
-						else
+				Quaternion?[] rotations = wsTrack.Rotations;
+				Quaternion?[] newRotations = null;
+				if (resampleCount < 0 || rotations.Length == resampleCount)
+				{
+					newRotations = new Quaternion?[rotations.Length];
+					for (int i = 0; i < rotations.Length; i++)
+					{
+						Quaternion? rotate = rotations[i];
+						if (rotate == null)
+							continue;
+
+						newRotations[i] = rotate.Value;
+					}
+				}
+				else
+				{
+					if (rotations.Length < 1)
+					{
+						newRotations = new Quaternion?[resampleCount];
+						for (int i = 0; i < newRotations.Length; i++)
 						{
-							if (rotations.Length < 1)
-							{
-								newRotations = new Quaternion?[resampleCount];
-								for (int i = 0; i < newRotations.Length; i++)
-								{
-									newRotations[i] = Quaternion.Identity;
-								}
-							}
-							else
-							{
-								interpolateTrack = true;
-							}
+							newRotations[i] = Quaternion.Identity;
 						}
 					}
-
-					Vector3?[] translations = wsTrack.Translations;
-					if (translations != null)
+					else
 					{
-						if (resampleCount < 0 || translations.Length == resampleCount)
-						{
-							newTranslations = new Vector3?[translations.Length];
-							for (int i = 0; i < translations.Length; i++)
-							{
-								Vector3? translate = translations[i];
-								if (translate == null)
-									continue;
+						interpolateTrack = true;
+					}
+				}
 
-								newTranslations[i] = translate.Value;
-							}
-						}
-						else
+				Vector3?[] translations = wsTrack.Translations;
+				Vector3?[] newTranslations = null;
+				if (resampleCount < 0 || translations.Length == resampleCount)
+				{
+					newTranslations = new Vector3?[translations.Length];
+					for (int i = 0; i < translations.Length; i++)
+					{
+						Vector3? translate = translations[i];
+						if (translate == null)
+							continue;
+
+						newTranslations[i] = translate.Value;
+					}
+				}
+				else
+				{
+					if (translations.Length < 1)
+					{
+						newTranslations = new Vector3?[resampleCount];
+						for (int i = 0; i < newTranslations.Length; i++)
 						{
-							if (translations.Length < 1)
-							{
-								newTranslations = new Vector3?[resampleCount];
-								for (int i = 0; i < newTranslations.Length; i++)
-								{
-									newTranslations[i] = new Vector3(0, 0, 0);
-								}
-							}
-							else
-							{
-								interpolateTrack = true;
-							}
+							newTranslations[i] = new Vector3(0, 0, 0);
 						}
+					}
+					else
+					{
+						interpolateTrack = true;
 					}
 				}
 
@@ -274,7 +261,7 @@ namespace SB3Utility
 			}
 			if (interpolateTracks.Count > 0)
 			{
-				Fbx.InterpolateSampledTracks(interpolateTracks, resampleCount, linear, EulerFilter, filterPrecision);
+				Fbx.InterpolateSampledTracks(interpolateTracks, resampleCount, linear);
 			}
 			return newTrackList;
 		}
@@ -481,7 +468,7 @@ namespace SB3Utility
 			return origKeyframes;
 		}
 
-		public static void ReplaceAnimation(ReplaceAnimationMethod replaceMethod, int insertPos, List<KeyValuePair<string, ImportedAnimationSampledTrack>> newTrackList, ImportedSampledAnimation iAnim, Dictionary<string, ImportedAnimationSampledTrack> animationNodeDic, bool negateQuaternions, float filterTolerance)
+		public static void ReplaceAnimation(ReplaceAnimationMethod replaceMethod, int insertPos, List<KeyValuePair<string, ImportedAnimationSampledTrack>> newTrackList, ImportedSampledAnimation iAnim, Dictionary<string, ImportedAnimationSampledTrack> animationNodeDic, bool negateQuaternionFlips)
 		{
 			if (replaceMethod == ReplaceAnimationMethod.Replace)
 			{
@@ -493,7 +480,6 @@ namespace SB3Utility
 					iTrack.Scalings = newTrack.Value.Scalings;
 					iTrack.Rotations = newTrack.Value.Rotations;
 					iTrack.Translations = newTrack.Value.Translations;
-					iTrack.Curve = newTrack.Value.Curve;
 				}
 			}
 			else if (replaceMethod == ReplaceAnimationMethod.ReplacePresent)
@@ -504,7 +490,6 @@ namespace SB3Utility
 					animationNode.Scalings = newTrack.Value.Scalings;
 					animationNode.Rotations = newTrack.Value.Rotations;
 					animationNode.Translations = newTrack.Value.Translations;
-					animationNode.Curve = newTrack.Value.Curve;
 				}
 			}
 			else if (replaceMethod == ReplaceAnimationMethod.Merge)
@@ -521,7 +506,6 @@ namespace SB3Utility
 						destSamples.Scalings = new Vector3?[newEnd];
 						destSamples.Rotations = new Quaternion?[newEnd];
 						destSamples.Translations = new Vector3?[newEnd];
-						destSamples.Curve = new float?[newEnd];
 						animationCopySampleTransformArray(origSamples, 0, destSamples, 0, origSamples.Scalings.Length);
 						animationNormalizeTrack(origSamples, destSamples, insertPos);
 					}
@@ -533,7 +517,6 @@ namespace SB3Utility
 							destSamples.Scalings = new Vector3?[newEnd];
 							destSamples.Rotations = new Quaternion?[newEnd];
 							destSamples.Translations = new Vector3?[newEnd];
-							destSamples.Curve = new float?[newEnd];
 						}
 						else
 						{
@@ -541,7 +524,6 @@ namespace SB3Utility
 							destSamples.Scalings = new Vector3?[origSamples.Scalings.Length];
 							destSamples.Rotations = new Quaternion?[origSamples.Rotations.Length];
 							destSamples.Translations = new Vector3?[origSamples.Translations.Length];
-							destSamples.Curve = new float?[origSamples.Curve.Length];
 							animationCopySampleTransformArray(origSamples, newEnd, destSamples, newEnd, origSamples.Scalings.Length - newEnd);
 						}
 						animationCopySampleTransformArray(origSamples, 0, destSamples, 0, insertPos);
@@ -551,7 +533,6 @@ namespace SB3Utility
 					animationNode.Scalings = destSamples.Scalings;
 					animationNode.Rotations = destSamples.Rotations;
 					animationNode.Translations = destSamples.Translations;
-					animationNode.Curve = destSamples.Curve;
 				}
 			}
 			else if (replaceMethod == ReplaceAnimationMethod.Insert)
@@ -568,7 +549,6 @@ namespace SB3Utility
 						destSamples.Scalings = new Vector3?[newEnd];
 						destSamples.Rotations = new Quaternion?[newEnd];
 						destSamples.Translations = new Vector3?[newEnd];
-						destSamples.Curve = new float?[newEnd];
 						animationCopySampleTransformArray(origSamples, 0, destSamples, 0, origSamples.Scalings.Length);
 						animationNormalizeTrack(origSamples, destSamples, insertPos);
 					}
@@ -578,7 +558,6 @@ namespace SB3Utility
 						destSamples.Scalings = new Vector3?[origSamples.Scalings.Length + newTrack.Value.Scalings.Length];
 						destSamples.Rotations = new Quaternion?[origSamples.Rotations.Length + newTrack.Value.Rotations.Length];
 						destSamples.Translations = new Vector3?[origSamples.Translations.Length + newTrack.Value.Translations.Length];
-						destSamples.Curve = new float?[origSamples.Curve.Length + newTrack.Value.Curve.Length];
 						animationCopySampleTransformArray(origSamples, 0, destSamples, 0, insertPos);
 						animationCopySampleTransformArray(origSamples, insertPos, destSamples, newEnd, origSamples.Scalings.Length - insertPos);
 					}
@@ -587,7 +566,6 @@ namespace SB3Utility
 					animationNode.Scalings = destSamples.Scalings;
 					animationNode.Rotations = destSamples.Rotations;
 					animationNode.Translations = destSamples.Translations;
-					animationNode.Curve = destSamples.Curve;
 				}
 			}
 			else if (replaceMethod == ReplaceAnimationMethod.Append)
@@ -600,7 +578,6 @@ namespace SB3Utility
 					destSamples.Scalings = new Vector3?[origSamples.Scalings.Length + insertPos + newTrack.Value.Scalings.Length];
 					destSamples.Rotations = new Quaternion?[origSamples.Rotations.Length + insertPos + newTrack.Value.Rotations.Length];
 					destSamples.Translations = new Vector3?[origSamples.Translations.Length + insertPos + newTrack.Value.Translations.Length];
-					destSamples.Curve = new float?[origSamples.Curve.Length + insertPos + newTrack.Value.Curve.Length];
 					animationCopySampleTransformArray(origSamples, destSamples, 0);
 					bool reduced = false;
 					for (int i = 0; i < origSamples.Scalings.Length; i++)
@@ -619,7 +596,6 @@ namespace SB3Utility
 					animationNode.Scalings = destSamples.Scalings;
 					animationNode.Rotations = destSamples.Rotations;
 					animationNode.Translations = destSamples.Translations;
-					animationNode.Curve = destSamples.Curve;
 				}
 			}
 			else
@@ -628,93 +604,33 @@ namespace SB3Utility
 				return;
 			}
 
-			if (negateQuaternions)
+			if (negateQuaternionFlips)
 			{
-				float thresholdPos = 180.0f - filterTolerance;
-				float thresholdNeg = -180.0f + filterTolerance;
 				foreach (var newTrack in iAnim.TrackList)
 				{
-					if (newTrack.Rotations == null)
-					{
-						continue;
-					}
+					ImportedAnimationSampledTrack keyframes = newTrack;
 					Quaternion lastQ = Quaternion.Identity;
-					Vector3 lastE = Vector3.Zero;
-					Vector3 diffE = Vector3.Zero;
-					bool flip = false;
-					for (int i = 0, lastUsed_keyIndex = -1; i < newTrack.Rotations.Length; i++)
+					for (int i = 0, lastUsed_keyIndex = -1; i < keyframes.Rotations.Length; i++)
 					{
-						if (newTrack.Rotations[i] == null)
-						{
+						if (keyframes.Rotations[i] == null)
 							continue;
-						}
 
-						Quaternion q = newTrack.Rotations[i].Value;
-						Vector3 e = FbxUtility.QuaternionToEuler(q);
+						Quaternion q = keyframes.Rotations[i].Value;
 						if (lastUsed_keyIndex >= 0)
 						{
-							if (lastE.X - diffE.X > thresholdPos && e.X < thresholdNeg)
-							{
-								diffE.X += 360;
-								flip ^= true;
-							}
-							else if (lastE.X - diffE.X < thresholdNeg && e.X > thresholdPos)
-							{
-								diffE.X -= 360;
-								flip ^= true;
-							}
-							e.X += diffE.X;
-
-							if (lastE.Y - diffE.Y > thresholdPos && e.Y < thresholdNeg)
-							{
-								diffE.Y += 360;
-								flip ^= true;
-							}
-							else if (lastE.Y - diffE.Y < thresholdNeg && e.Y > thresholdPos)
-							{
-								diffE.Y -= 360;
-								flip ^= true;
-							}
-							e.Y += diffE.Y;
-
-							if (lastE.Z - diffE.Z > thresholdPos && e.Z < thresholdNeg)
-							{
-								diffE.Z += 360;
-								flip ^= true;
-							}
-							else if (lastE.Z - diffE.Z < thresholdNeg && e.Z > thresholdPos)
-							{
-								diffE.Z -= 360;
-								flip ^= true;
-							}
-							e.Z += diffE.Z;
-
-							if (flip)
-							{
-								q.X = -q.X;
-								q.Y = -q.Y;
-								q.Z = -q.Z;
-								q.W = -q.W;
-
-								newTrack.Rotations[i] = q;
-							}
-
-							bool diffX = Math.Sign(lastQ.X) != Math.Sign(q.X);
-							bool diffY = Math.Sign(lastQ.Y) != Math.Sign(q.Y);
 							bool diffZ = Math.Sign(lastQ.Z) != Math.Sign(q.Z);
 							bool diffW = Math.Sign(lastQ.W) != Math.Sign(q.W);
-							if ((diffX || diffY || diffZ) && diffW)
+							if (diffZ && diffW)
 							{
 								q.X = -q.X;
 								q.Y = -q.Y;
 								q.Z = -q.Z;
 								q.W = -q.W;
 
-								newTrack.Rotations[i] = q;
+								keyframes.Rotations[i] = q;
 							}
 						}
 						lastQ = q;
-						lastE = e;
 						lastUsed_keyIndex = i;
 					}
 				}
@@ -726,27 +642,23 @@ namespace SB3Utility
 			Vector3? scaleKeyCopy;
 			Quaternion? rotateKeyCopy;
 			Vector3? translateKeyCopy;
-			float? morphKeyCopy;
 			if (origSamples.Scalings.Length > 0)
 			{
 				scaleKeyCopy = origSamples.Scalings[origSamples.Scalings.Length - 1];
 				rotateKeyCopy = origSamples.Rotations[origSamples.Rotations.Length - 1];
 				translateKeyCopy = origSamples.Translations[origSamples.Translations.Length - 1];
-				morphKeyCopy = origSamples.Curve[origSamples.Curve.Length - 1];
 			}
 			else
 			{
 				scaleKeyCopy = new Vector3(1, 1, 1);
 				rotateKeyCopy = Quaternion.Identity;
 				translateKeyCopy = new Vector3(0, 0, 0);
-				morphKeyCopy = 0;
 			}
 			for (int j = origSamples.Scalings.Length; j < count; j++)
 			{
 				destSamples.Scalings[j] = scaleKeyCopy;
 				destSamples.Rotations[j] = rotateKeyCopy;
 				destSamples.Translations[j] = translateKeyCopy;
-				destSamples.Curve[j] = morphKeyCopy;
 			}
 		}
 
@@ -760,8 +672,6 @@ namespace SB3Utility
 				dest.Rotations[destIdx + i] = rotateKey;
 				Vector3? translateKey = src.Translations[srcIdx + i];
 				dest.Translations[destIdx + i] = translateKey;
-				float? morphKey = src.Curve[srcIdx + i];
-				dest.Curve[destIdx + i] = morphKey;
 			}
 		}
 
@@ -781,11 +691,6 @@ namespace SB3Utility
 			{
 				Vector3? translateKey = src.Translations[i];
 				dest.Translations[i + destOffset] = translateKey;
-			}
-			for (int i = 0; i < src.Curve.Length; i++)
-			{
-				float? morphKey = src.Curve[i];
-				dest.Curve[i + destOffset] = morphKey;
 			}
 		}
 
@@ -815,7 +720,6 @@ namespace SB3Utility
 				origKeyframes.Scalings = new Vector3?[0];
 				origKeyframes.Rotations = new Quaternion?[0];
 				origKeyframes.Translations = new Vector3?[0];
-				origKeyframes.Curve = new float?[0];
 			}
 			return origKeyframes;
 		}

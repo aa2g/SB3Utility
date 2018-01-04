@@ -9,7 +9,6 @@ namespace SB3Utility
 	{
 		public IImported Imported { get; protected set; }
 		public List<ImportedFrame> Frames { get; protected set; }
-		public List<WorkspaceMaterial> Materials { get; protected set; }
 		public List<WorkspaceMesh> Meshes { get; protected set; }
 		public List<WorkspaceMorph> Morphs { get; protected set; }
 		public List<WorkspaceAnimation> Animations { get; protected set; }
@@ -17,16 +16,6 @@ namespace SB3Utility
 		public ImportedEditor(IImported imported)
 		{
 			Imported = imported;
-
-			if (Imported.MaterialList != null && Imported.MaterialList.Count > 0)
-			{
-				Materials = new List<WorkspaceMaterial>(Imported.MaterialList.Count);
-				foreach (ImportedMaterial mat in Imported.MaterialList)
-				{
-					WorkspaceMaterial wsMat = new WorkspaceMaterial(mat);
-					Materials.Add(wsMat);
-				}
-			}
 
 			if ((Imported.FrameList != null) && (Imported.FrameList.Count > 0))
 			{

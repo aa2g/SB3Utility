@@ -8,10 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using SlimDX;
-using SlimDX.DXGI;
-using SlimDX.Direct3D11;
+using SlimDX.Direct3D9;
 using WeifenLuo.WinFormsUI.Docking;
-using Device = SlimDX.Direct3D11.Device;
 
 namespace SB3Utility
 {
@@ -55,25 +53,20 @@ namespace SB3Utility
 
 		void ResizeImage()
 		{
+
 			if ((pictureBox1.Image != null) && (pictureBox1.Image.Width > 0) && (pictureBox1.Image.Height > 0))
 			{
 				Decimal x = (Decimal)panel1.Width / pictureBox1.Image.Width;
 				Decimal y = (Decimal)panel1.Height / pictureBox1.Image.Height;
 				if (x > y)
 				{
-					pictureBox1.Size = new Size
-					(
-						Decimal.ToInt32(pictureBox1.Image.Width * y),
-						Decimal.ToInt32(pictureBox1.Image.Height * y)
-					);
+					pictureBox1.Width = Decimal.ToInt32(pictureBox1.Image.Width * y);
+					pictureBox1.Height = Decimal.ToInt32(pictureBox1.Image.Height * y);
 				}
 				else
 				{
-					pictureBox1.Size = new Size
-					(
-						Decimal.ToInt32(pictureBox1.Image.Width * x),
-						Decimal.ToInt32(pictureBox1.Image.Height * x)
-					);
+					pictureBox1.Width = Decimal.ToInt32(pictureBox1.Image.Width * x);
+					pictureBox1.Height = Decimal.ToInt32(pictureBox1.Image.Height * x);
 				}
 			}
 		}
@@ -82,17 +75,11 @@ namespace SB3Utility
 		{
 			try
 			{
-				if (tex == null || Gui.Docking.DockRenderer.IsHidden)
+				if (tex == null)
 				{
 					pictureBox1.Image = null;
 					textBoxName.Text = String.Empty;
 					textBoxSize.Text = String.Empty;
-					if (!Gui.Docking.DockRenderer.IsHidden)
-					{
-						Gui.Docking.DockRenderer.Enabled = false;
-						Gui.Docking.DockRenderer.Activate();
-						Gui.Docking.DockRenderer.Enabled = true;
-					}
 				}
 				else
 				{
@@ -100,63 +87,16 @@ namespace SB3Utility
 
 					if (tex.Data.Length > 0x12)
 					{
-						if (Path.GetExtension(tex.Name).ToUpper() == ".TGA")
-						{
-							byte pixelDepth;
-							Texture2D renderTexture = Utility.TGA.ToImage(tex, out pixelDepth);
-							if (renderTexture != null)
-							{
-								ToPictureBox(renderTexture, pixelDepth);
-								renderTexture.Dispose();
-							}
-							else
-							{
-								pictureBox1.Image = pictureBox1.ErrorImage;
-							}
-						}
-						else
-						{
-							try
-							{
-								Image img = System.Drawing.Image.FromStream(new MemoryStream(tex.Data));
-								pictureBox1.Image = img;
-								int bpp = 0;
-								if (img.PixelFormat.ToString().IndexOf("Format") >= 0)
-								{
-									bpp = img.PixelFormat.ToString().IndexOf("bpp");
-									if (!int.TryParse(img.PixelFormat.ToString().Substring(6, bpp - 6), out bpp))
-									{
-										bpp = 0;
-									}
-								}
-								textBoxSize.Text = img.Width + "x" + img.Height + (bpp > 0 ? "x" + bpp : String.Empty);
-							}
-							catch
-							{
-								try
-								{
-									int width, height, bpp;
-									bool cubemap;
-									using (Texture2D renderTexture = Utility.DDS.ScaleWhenNeeded(tex.Data, out width, out height, out bpp, out cubemap))
-									{
-										ToPictureBox(renderTexture, bpp, width, height, cubemap);
-									}
-								}
-								catch (Exception e)
-								{
-									pictureBox1.Image = pictureBox1.ErrorImage;
-									Direct3D11Exception d3de = e as Direct3D11Exception;
-									if (d3de != null)
-									{
-										Report.ReportLog("Direct3D11 Exception name=\"" + d3de.ResultCode.Name + "\" desc=\"" + d3de.ResultCode.Description + "\" code=0x" + ((uint)d3de.ResultCode.Code).ToString("X"));
-									}
-									else
-									{
-										Utility.ReportException(e);
-									}
-								}
-							}
-						}
+						ImageInformation imageInfo;
+						Texture renderTexture = Texture.FromMemory(Gui.Renderer.Device, tex.Data, 0, 0, -1, Usage.None, Format.Unknown, Pool.Managed, Filter.Default, Filter.Default, 0, out imageInfo);
+						DataStream stream = Texture.ToStream(renderTexture, ImageFileFormat.Bmp);
+						Bitmap bitmap = new Bitmap(stream);
+						stream.Dispose();
+						string format = renderTexture.GetLevelDescription(0).Format.GetDescription();
+						int bpp = (format.Contains("A8") ? 8 : 0)
+							+ (format.Contains("R8") ? 8 : 0) + (format.Contains("G8") ? 8 : 0) + (format.Contains("B8") ? 8 : 0);
+						renderTexture.Dispose();
+						pictureBox1.Image = bitmap;
 
 						ResizeImage();
 						if (!this.IsHidden)
@@ -165,6 +105,7 @@ namespace SB3Utility
 							Activate();
 							Enabled = true;
 						}
+						textBoxSize.Text = imageInfo.Width + "x" + imageInfo.Height + (bpp > 0 ? "x" + bpp : String.Empty);
 					}
 					else
 					{
@@ -179,37 +120,6 @@ namespace SB3Utility
 			{
 				Utility.ReportException(ex);
 			}
-		}
-
-		private void ToPictureBox(Texture2D renderTexture, int bpp = 0, int originalWidth = 0, int originalHeight = 0, bool cubemap = false)
-		{
-			using (Stream stream = new MemoryStream())
-			{
-				try
-				{
-					Texture2D.ToStream(Gui.Renderer.Device.ImmediateContext, renderTexture, ImageFileFormat.Png, stream);
-				}
-				catch
-				{
-					try
-					{
-						Texture2D.ToStream(Gui.Renderer.Device.ImmediateContext, renderTexture, ImageFileFormat.Bmp, stream);
-					}
-					catch { }
-				}
-				stream.Position = 0;
-				//using (Image img = System.Drawing.Image.FromStream(stream))
-				{
-					pictureBox1.Image = new Bitmap(stream);
-				}
-			}
-			if (cubemap)
-			{
-				textBoxName.Text += " [cubemap]";
-			}
-			textBoxSize.Text = (originalWidth == 0 ? renderTexture.Description.Width : originalWidth) + "x"
-				+ (originalHeight == 0 ? renderTexture.Description.Height : originalHeight)
-				+ (bpp > 0 ? "x" + bpp : String.Empty);
 		}
 	}
 }

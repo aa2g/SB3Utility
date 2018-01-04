@@ -60,9 +60,6 @@ namespace SB3Utility
 				InitAutosave();
 			}
 
-			timeStampToolStripMenuItem.Checked = (bool)Gui.Config["CommandsTimestamp"];
-			timeStampToolStripMenuItem.CheckedChanged += timeStampToolStripMenuItem_CheckedChanged;
-
 			this.FormClosing += new FormClosingEventHandler(FormScript_FormClosing);
 		}
 
@@ -86,13 +83,7 @@ namespace SB3Utility
 			{
 				richTextBoxScript.SuspendLayout();
 				Color color = (show) ? Color.Empty : SystemColors.GrayText;
-				string cmdShown = command;
-				if (timeStampToolStripMenuItem.Checked)
-				{
-					string timeHeader = "[" + DateTime.Now.Hour.ToString("D2") + ":" + DateTime.Now.Minute.ToString("D2") + "] ";
-					cmdShown = timeHeader + command;
-				}
-				AppendText(cmdShown + (show ? "" : " // GUI only") + Environment.NewLine, color);
+				AppendText(command + (show ? "" : " // GUI only") + Environment.NewLine, color);
 				richTextBoxScript.SelectionStart = richTextBoxScript.Text.Length;
 				richTextBoxScript.ScrollToCaret();
 				richTextBoxScript.ResumeLayout();
@@ -281,8 +272,7 @@ namespace SB3Utility
 
 				autosaveScriptWriter = new StreamWriter(fs, Encoding.UTF8);
 				autosaveScriptWriter.AutoFlush = true;
-				autosaveScriptWriter.WriteLine("; start session" +
-					" [" + DateTime.Today.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() + "] ");
+				autosaveScriptWriter.WriteLine("; start session");
 
 				Report.ReportLog("Autosaving script to " + path);
 			}
@@ -296,17 +286,11 @@ namespace SB3Utility
 		{
 			if (autosaveScriptWriter != null)
 			{
-				autosaveScriptWriter.WriteLine("; end session" +
-					" [" + DateTime.Today.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() + "] ");
+				autosaveScriptWriter.WriteLine("; end session");
 				autosaveScriptWriter.WriteLine();
 				autosaveScriptWriter.Close();
 				autosaveScriptWriter = null;
 			}
-		}
-
-		private void timeStampToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
-		{
-			Gui.Config["CommandsTimestamp"] = timeStampToolStripMenuItem.Checked;
 		}
 
 		private void quickSaveSelectedToolStripMenuItem_Click(object sender, EventArgs e)

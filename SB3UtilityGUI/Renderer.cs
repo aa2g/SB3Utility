@@ -4,39 +4,26 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.IO;
+using System.Text;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using SlimDX;
-using SlimDX.D3DCompiler;
-using SlimDX.DXGI;
-using SlimDX.Direct3D11;
-using Device = SlimDX.Direct3D11.Device;
-using Resource = SlimDX.Direct3D11.Resource;
-using Buffer = SlimDX.Direct3D11.Buffer;
+using SlimDX.Direct3D9;
 
 namespace SB3Utility
 {
 	public class Renderer : IDisposable
 	{
+		public static Material NullMaterial = new Material();
+
 		public float Sensitivity
 		{
 			get { return camera.Sensitivity; }
 			set { camera.Sensitivity = value; }
 		}
 
-		public bool LockLight { get; set; }
-
 		public Device Device { get; protected set; }
-		public Core.FX.Effect Effect { get { return normalMapEffect; } }
-		public InputLayout VertexLayout { get; protected set; }
-		public InputLayout MorphedVertexLayout { get; protected set; }
-		public InputLayout BlendedVertexLayout { get; protected set; }
-		public InputLayout VertexNormalLayout { get; protected set; }
-		public InputLayout VertexBoneLayout { get; protected set; }
-		public Core.DirectionalLight[] Lights { get; set; }
 
 		bool showNormals;
 		public bool ShowNormals
@@ -91,12 +78,12 @@ namespace SB3Utility
 		{
 			get
 			{
-				Core.DirectionalLight light = Device.GetLight(0);
+				Light light = Device.GetLight(0);
 				return light.Diffuse.ToColor();
 			}
 			set
 			{
-				Core.DirectionalLight light = Device.GetLight(0);
+				Light light = Device.GetLight(0);
 				light.Diffuse = new Color4(value);
 				Device.SetLight(0, light);
 				Gui.Config["LightDiffuseARGB"] = value.ToArgb().ToString("X8");
@@ -107,12 +94,12 @@ namespace SB3Utility
 		{
 			get
 			{
-				Core.DirectionalLight light = Device.GetLight(0);
+				Light light = Device.GetLight(0);
 				return light.Ambient.ToColor();
 			}
 			set
 			{
-				Core.DirectionalLight light = Device.GetLight(0);
+				Light light = Device.GetLight(0);
 				light.Ambient = new Color4(value);
 				Device.SetLight(0, light);
 				Gui.Config["LightAmbientARGB"] = value.ToArgb().ToString("X8");
@@ -123,12 +110,12 @@ namespace SB3Utility
 		{
 			get
 			{
-				Core.DirectionalLight light = Device.GetLight(0);
+				Light light = Device.GetLight(0);
 				return light.Specular.ToColor();
 			}
 			set
 			{
-				Core.DirectionalLight light = Device.GetLight(0);
+				Light light = Device.GetLight(0);
 				light.Specular = new Color4(value);
 				Device.SetLight(0, light);
 				Gui.Config["LightSpecularARGB"] = value.ToArgb().ToString("X8");
@@ -142,150 +129,12 @@ namespace SB3Utility
 		protected MouseButtons mouseDown = MouseButtons.None;
 		protected bool deviceLost = false;
 
-		Core.FX.ExtendedNormalMapEffect normalMapEffect;
-		Core.FX.ColorEffect PositionColorEffect;
-		InputLayout LineLayout;
-
-		BlendState transparentBS;
-		Color4 blendFactor = new Color4(0, 0, 0, 0);
-
-		class Cursor : BaseMesh, IRenderObject
-		{
-			Device device;
-			InputLayout lineLayout;
-			EffectPass _pass;
-			BlendState cursorBS;
-
-			public BoundingBox Bounds { get; protected set; }
-			public AnimationController AnimationController { get; protected set; }
-
-			public Cursor(Device device, InputLayout lineLayout, EffectTechnique _tech)
-			{
-				this.device = device;
-				this.lineLayout = lineLayout;
-				this._pass = _tech.GetPassByIndex(0);
-
-				var transDesc = new BlendStateDescription
-				{
-					AlphaToCoverageEnable = false,
-					IndependentBlendEnable = false
-				};
-				transDesc.RenderTargets[0].BlendEnable = true;
-				transDesc.RenderTargets[0].SourceBlend = BlendOption.InverseDestinationColor;
-				transDesc.RenderTargets[0].DestinationBlend = BlendOption.DestinationColor;
-				transDesc.RenderTargets[0].BlendOperation = BlendOperation.Add;
-				transDesc.RenderTargets[0].SourceBlendAlpha = BlendOption.One;
-				transDesc.RenderTargets[0].DestinationBlendAlpha = BlendOption.Zero;
-				transDesc.RenderTargets[0].BlendOperationAlpha = BlendOperation.Add;
-				transDesc.RenderTargets[0].RenderTargetWriteMask = ColorWriteMaskFlags.All;
-				cursorBS = BlendState.FromDescription(device, transDesc);
-
-				PositionColored[] cursorGeometry = new PositionColored[]
-				{
-					new PositionColored(new Vector3(-1, 0, 0), Color.SkyBlue),
-					new PositionColored(new Vector3(1, 0, 0), Color.SkyBlue),
-
-					new PositionColored(new Vector3(0, -1, 0), Color.SkyBlue),
-					new PositionColored(new Vector3(0, 1, 0), Color.SkyBlue),
-
-					new PositionColored(new Vector3(0, 0, -1), Color.SkyBlue),
-					new PositionColored(new Vector3(0, 0, 1), Color.SkyBlue)
-				};
-				device.ImmediateContext.InputAssembler.InputLayout = lineLayout;
-				device.ImmediateContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-				BufferDescription vbd = new BufferDescription(PositionColored.Stride * cursorGeometry.Length, ResourceUsage.Immutable, BindFlags.VertexBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
-				uint[] indices = new uint[] { 0, 1, 2, 3, 4, 5 };
-				BufferDescription ibd = new BufferDescription(sizeof(uint) * indices.Length, ResourceUsage.Immutable, BindFlags.IndexBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
-				Buffer cursorVertexBuffer = new Buffer(device, new DataStream(cursorGeometry, true, false), vbd);
-				vertexBufferBinding = new VertexBufferBinding(cursorVertexBuffer, PositionColored.Stride, 0);
-				IndexBuffer = new Buffer(device, new DataStream(indices, false, false), ibd);
-			}
-
-			public new void Dispose()
-			{
-				if (cursorBS != null)
-				{
-					cursorBS.Dispose();
-				}
-
-				base.Dispose();
-			}
-
-			public void Render()
-			{
-				BlendState originalBlendState = device.ImmediateContext.OutputMerger.BlendState;
-				device.ImmediateContext.OutputMerger.BlendState = cursorBS;
-
-				device.ImmediateContext.InputAssembler.InputLayout = lineLayout;
-				device.ImmediateContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-				device.ImmediateContext.InputAssembler.SetVertexBuffers(0, vertexBufferBinding);
-				device.ImmediateContext.InputAssembler.SetIndexBuffer(IndexBuffer, Format.R32_UInt, 0);
-				_pass.Apply(device.ImmediateContext);
-				device.ImmediateContext.DrawIndexed(6, 0, 0);
-
-				device.ImmediateContext.OutputMerger.BlendState = originalBlendState;
-			}
-
-			public void ResetPose() { }
-		}
-		Cursor CursorMesh;
-
-		class Axes : BaseMesh, IRenderObject
-		{
-			Device device;
-			InputLayout lineLayout;
-			EffectPass _pass;
-
-			public BoundingBox Bounds { get; protected set; }
-			public AnimationController AnimationController { get; protected set; }
-
-			public Axes(Device device, InputLayout lineLayout, EffectTechnique _tech)
-			{
-				this.device = device;
-				this.lineLayout = lineLayout;
-				this._pass = _tech.GetPassByIndex(0);
-
-				PositionColored[] axes = new PositionColored[]
-				{
-					new PositionColored(new Vector3(0), Color.Red),
-					new PositionColored(new Vector3(10, 0, 0), Color.Red),
-
-					new PositionColored(new Vector3(0), Color.Green),
-					new PositionColored(new Vector3(0, 10, 0), Color.Green),
-
-					new PositionColored(new Vector3(0), Color.Blue),
-					new PositionColored(new Vector3(0, 0, 10), Color.Blue)
-				};
-
-				BufferDescription vbd = new BufferDescription(PositionColored.Stride * axes.Length, ResourceUsage.Immutable, BindFlags.VertexBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
-				uint[] indices = new uint[] { 0, 1, 2, 3, 4, 5 };
-				BufferDescription ibd = new BufferDescription(sizeof(uint) * indices.Length, ResourceUsage.Immutable, BindFlags.IndexBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
-				Buffer vertexBuffer = new Buffer(device, new DataStream(axes, true, false), vbd);
-				vertexBufferBinding = new VertexBufferBinding(vertexBuffer, PositionColored.Stride, 0);
-				IndexBuffer = new Buffer(device, new DataStream(indices, false, false), ibd);
-			}
-
-			public void Render()
-			{
-				device.ImmediateContext.InputAssembler.InputLayout = lineLayout;
-				device.ImmediateContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-				device.ImmediateContext.InputAssembler.SetVertexBuffers(0, vertexBufferBinding);
-				device.ImmediateContext.InputAssembler.SetIndexBuffer(IndexBuffer, Format.R32_UInt, 0);
-				_pass.Apply(device.ImmediateContext);
-				device.ImmediateContext.DrawIndexed(6, 0, 0);
-			}
-
-			public void ResetPose() { }
-		}
-		Axes AxesMesh;
-
-/*		SlimDX.Direct3D9.Font TextFont;
-		Color4 TextColor;*/
+		Mesh CursorMesh;
+		Material CursorMaterial;
+		SlimDX.Direct3D9.Font TextFont;
+		Color4 TextColor;
 
 		Control renderControl;
-		RenderTargetView renderTarget;
-		Texture2D depthStencilBuffer;
-		DepthStencilView depthStencilView;
 		SwapChain swapChain;
 		Rectangle renderRect;
 
@@ -322,104 +171,47 @@ namespace SB3Utility
 
 		public Renderer(Control control)
 		{
-			try
+			PresentParameters presentParams = new PresentParameters();
+			presentParams.Windowed = true;
+			presentParams.BackBufferCount = 0;
+			presentParams.BackBufferWidth = Screen.PrimaryScreen.WorkingArea.Width;
+			presentParams.BackBufferHeight = Screen.PrimaryScreen.WorkingArea.Height;
+			Device = new Device(new Direct3D(), 0, DeviceType.Hardware, control.Handle, CreateFlags.SoftwareVertexProcessing, presentParams);
+			if ((Device.Capabilities.VertexProcessingCaps & VertexProcessingCaps.Tweening) == 0)
 			{
-				SwapChainDescription description = new SwapChainDescription()
-				{
-					BufferCount = 1,
-					Usage = Usage.RenderTargetOutput,
-					OutputHandle = control.Handle,
-					IsWindowed = true,
-					ModeDescription = new ModeDescription(0, 0, new Rational(60, 1), Format.R8G8B8A8_UNorm),
-					SampleDescription = new SampleDescription(1, 0),
-					Flags = SwapChainFlags.AllowModeSwitch,
-					SwapEffect = SwapEffect.Discard
-				};
-				Device device;
-				Device.CreateWithSwapChain(DriverType.Hardware, 0, description, out device, out swapChain);
-				Device = device;
-			}
-			catch (Exception e)
-			{
-				Match m = Regex.Match(e.Message, @"\((.+)\)");
-				int hexErr = 0;
-				if (m.Groups.Count >= 2)
-				{
-					int.TryParse(m.Groups[1].Value, out hexErr);
-				}
-				Report.ReportLog("Device.CreateWithSwapChain failed: " + e.Message + (hexErr != 0 ? " => x" + hexErr.ToString("X8") : string.Empty));
-				return;
+				Report.ReportLog("Vertex tweening is not supported!");
 			}
 
-			using (var resource = Resource.FromSwapChain<Texture2D>(swapChain, 0))
-				renderTarget = new RenderTargetView(Device, resource);
-
-			Texture2DDescription depthStencilDesc = new Texture2DDescription
-			{
-				Width = control.Width,
-				Height = control.Height,
-				MipLevels = 1,
-				ArraySize = 1,
-				Format = Format.D24_UNorm_S8_UInt,
-				SampleDescription = new SampleDescription(1, 0),
-				Usage = ResourceUsage.Default,
-				BindFlags = BindFlags.DepthStencil,
-				CpuAccessFlags = CpuAccessFlags.None,
-				OptionFlags = ResourceOptionFlags.None
-			};
-			depthStencilBuffer = new Texture2D(Device, depthStencilDesc) { DebugName = "DepthStencilBuffer" };
-			depthStencilView = new DepthStencilView(Device, depthStencilBuffer);
-
-			var context = Device.ImmediateContext;
-			context.OutputMerger.SetTargets(depthStencilView, renderTarget);
-			var viewport = new Viewport(0.0f, 0.0f, control.Width, control.Height, 0f, 1f);
-			context.Rasterizer.SetViewports(viewport);
-
-			// prevent DXGI handling of alt+enter, which doesn't work properly with Winforms
-			using (var factory = swapChain.GetParent<Factory>())
-				factory.SetWindowAssociation(control.Handle, WindowAssociationFlags.IgnoreAltEnter);
-
-/*			Device.SetRenderState(RenderState.DiffuseMaterialSource, ColorSource.Material);
+			Device.SetRenderState(RenderState.Lighting, true);
+			Device.SetRenderState(RenderState.DiffuseMaterialSource, ColorSource.Material);
 			Device.SetRenderState(RenderState.EmissiveMaterialSource, ColorSource.Material);
 			Device.SetRenderState(RenderState.SpecularMaterialSource, ColorSource.Material);
-			Device.SetRenderState(RenderState.SpecularEnable, true);*/
-			BlendStateDescription transDesc = new BlendStateDescription
-			{
-				AlphaToCoverageEnable = false,
-				IndependentBlendEnable = false
-			};
-			transDesc.RenderTargets[0].BlendEnable = true;
-			transDesc.RenderTargets[0].SourceBlend = BlendOption.SourceAlpha;
-			transDesc.RenderTargets[0].DestinationBlend = BlendOption.InverseSourceAlpha;
-			transDesc.RenderTargets[0].BlendOperation = BlendOperation.Add;
-			transDesc.RenderTargets[0].SourceBlendAlpha = BlendOption.One;
-			transDesc.RenderTargets[0].DestinationBlendAlpha = BlendOption.Zero;
-			transDesc.RenderTargets[0].BlendOperationAlpha = BlendOperation.Add;
-			transDesc.RenderTargets[0].RenderTargetWriteMask = ColorWriteMaskFlags.All;
-			transparentBS = BlendState.FromDescription(Device, transDesc);
+			Device.SetRenderState(RenderState.SpecularEnable, true);
+			Device.SetRenderState(RenderState.AlphaBlendEnable, true);
+			Device.SetRenderState(RenderState.BlendOperationAlpha, BlendOperation.Add);
+			Device.SetRenderState(RenderState.SourceBlend, Blend.SourceAlpha);
+			Device.SetRenderState(RenderState.DestinationBlend, Blend.InverseSourceAlpha);
 
-			context.OutputMerger.BlendState = transparentBS;
-			context.OutputMerger.BlendFactor = blendFactor;
-			context.OutputMerger.BlendSampleMask = ~0;
-
-/*			Device.SetSamplerState(0, SamplerState.MaxAnisotropy, 4);
+			Device.SetSamplerState(0, SamplerState.MaxAnisotropy, 4);
 			Device.SetSamplerState(0, SamplerState.MagFilter, TextureFilter.Anisotropic);
 			Device.SetSamplerState(0, SamplerState.MinFilter, TextureFilter.Anisotropic);
-			Device.SetSamplerState(0, SamplerState.MipFilter, TextureFilter.Linear);*/
+			Device.SetSamplerState(0, SamplerState.MipFilter, TextureFilter.Linear);
 
-			Lights = new Core.DirectionalLight[1]
-			{
-				new Core.DirectionalLight
-				{
-					Ambient = new Color4(int.Parse((string)Gui.Config["LightAmbientARGB"], System.Globalization.NumberStyles.AllowHexSpecifier)),
-					Diffuse = new Color4(int.Parse((string)Gui.Config["LightDiffuseARGB"], System.Globalization.NumberStyles.AllowHexSpecifier)),
-					Specular = new Color4(int.Parse((string)Gui.Config["LightSpecularARGB"], System.Globalization.NumberStyles.AllowHexSpecifier)),
-					Direction = new Vector3(0.57735f, 0.57735f, 0.57735f)
-				}
-			};
+			Light light = new Light();
+			light.Type = LightType.Directional;
+			light.Ambient = new Color4(int.Parse((string)Gui.Config["LightAmbientARGB"], System.Globalization.NumberStyles.AllowHexSpecifier));
+			light.Diffuse = new Color4(int.Parse((string)Gui.Config["LightDiffuseARGB"], System.Globalization.NumberStyles.AllowHexSpecifier));
+			light.Specular = new Color4(int.Parse((string)Gui.Config["LightSpecularARGB"], System.Globalization.NumberStyles.AllowHexSpecifier));
+			Device.SetLight(0, light);
+			Device.EnableLight(0, true);
 
-/*			TextFont = new SlimDX.Direct3D9.Font(Device, new System.Drawing.Font("Arial", 8));
-			TextColor = new Color4(Color.White);*/
+			TextFont = new SlimDX.Direct3D9.Font(Device, new System.Drawing.Font("Arial", 8));
+			TextColor = new Color4(Color.White);
+
+			CursorMesh = Mesh.CreateSphere(Device, 1, 10, 10);
+			CursorMaterial = new Material();
+			CursorMaterial.Ambient = new Color4(1, 1f, 1f, 1f);
+			CursorMaterial.Diffuse = new Color4(1, 0.6f, 1, 0.3f);
 
 			showNormals = (bool)Gui.Config["ShowNormals"];
 			showBones = (bool)Gui.Config["ShowBones"];
@@ -438,93 +230,7 @@ namespace SB3Utility
 
 			isInitialized = true;
 			camera = new Camera(control);
-
-			BuildFX();
-
-			CursorMesh = new Cursor(Device, LineLayout, PositionColorEffect.ColorTech);
-			AxesMesh = new Axes(Device, LineLayout, PositionColorEffect.ColorTech);
-
 			RenderControl = control;
-		}
-
-		private void BuildFX()
-		{
-			try
-			{
-				PositionColorEffect = new Core.FX.ColorEffect(Device, Path.GetDirectoryName(Application.ExecutablePath) + "/FX/color.fxo");
-				EffectPassDescription passDesc = PositionColorEffect.ColorTech.GetPassByIndex(0).Description;
-				LineLayout = new InputLayout
-				(
-					Device,
-					passDesc.Signature,
-					new InputElement[]
-					{
-						new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0),
-						new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 12, 0, InputClassification.PerVertexData, 0)
-					}
-				);
-
-				normalMapEffect = new Core.FX.ExtendedNormalMapEffect(Device, Path.GetDirectoryName(Application.ExecutablePath) + "/FX/NormalMap.fxo");
-				passDesc = ((Core.FX.ExtendedNormalMapEffect)Effect).MorphTech.GetPassByIndex(0).Description;
-				MorphedVertexLayout = new InputLayout
-				(
-					Device,
-					passDesc.Signature,
-					new InputElement[]
-					{
-						new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0),
-						new InputElement("NORMAL", 0, Format.R32G32B32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0),
-						new InputElement("POSITION", 1, Format.R32G32B32_Float, InputElement.AppendAligned, 1, InputClassification.PerVertexData, 0),
-						new InputElement("NORMAL", 1, Format.R32G32B32_Float, InputElement.AppendAligned, 1, InputClassification.PerVertexData, 0),
-						new InputElement("TEXCOORD", 0, Format.R32G32_Float, InputElement.AppendAligned, 2, InputClassification.PerVertexData, 0),
-					}
-				);
-				passDesc = ((Core.FX.ExtendedNormalMapEffect)Effect).Light1TexAlphaClipSkinnedTech.GetPassByIndex(0).Description;
-				BlendedVertexLayout = new InputLayout
-				(
-					Device,
-					passDesc.Signature,
-					new InputElement[]
-					{
-						new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0),
-						new InputElement("NORMAL", 0, Format.R32G32B32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0), 
-						new InputElement("TEXCOORD", 0, Format.R32G32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0),
-						new InputElement("TANGENT", 0, Format.R32G32B32A32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData,0 ),
-						new InputElement("BLENDWEIGHT", 0, Format.R32G32B32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0),
-						new InputElement("BLENDINDICES", 0, Format.R32G32B32A32_UInt, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0), 
-						new InputElement("COLOR", 0, Format.R32G32B32A32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0)
-					}
-				);
-				passDesc = ((Core.FX.ExtendedNormalMapEffect)Effect).NormalsTech.GetPassByIndex(0).Description;
-				VertexNormalLayout = new InputLayout
-				(
-					Device,
-					passDesc.Signature,
-					new InputElement[]
-					{
-						new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0),
-						new InputElement("BLENDWEIGHT", 0, Format.R32G32B32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0),
-						new InputElement("BLENDINDICES", 0, Format.R32G32B32A32_UInt, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0),
-						new InputElement("COLOR", 0, Format.R32G32B32A32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0)
-					}
-				);
-				passDesc = ((Core.FX.ExtendedNormalMapEffect)Effect).BonesTech.GetPassByIndex(0).Description;
-				VertexBoneLayout = new InputLayout
-				(
-					Device,
-					passDesc.Signature,
-					new InputElement[]
-					{
-						new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0, InputClassification.PerVertexData, 0),
-						new InputElement("BLENDINDICES", 0, Format.R32_UInt, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0),
-						new InputElement("COLOR", 0, Format.R32G32B32A32_Float, InputElement.AppendAligned, 0, InputClassification.PerVertexData, 0)
-					}
-				);
-			}
-			catch (Exception ex)
-			{
-				Report.ReportLog(ex.Message);
-			}
 		}
 
 		~Renderer()
@@ -536,65 +242,10 @@ namespace SB3Utility
 		{
 			isInitialized = false;
 
-			if (CursorMesh != null)
-			{
-				CursorMesh.Dispose();
-				CursorMesh = null;
-			}
-			if (AxesMesh != null)
-			{
-				AxesMesh.Dispose();
-				AxesMesh = null;
-			}
-
-			if (BlendedVertexLayout != null)
-			{
-				BlendedVertexLayout.Dispose();
-				BlendedVertexLayout = null;
-			}
-			if (normalMapEffect != null)
-			{
-				normalMapEffect.Dispose();
-				normalMapEffect = null;
-			}
-			if (LineLayout != null)
-			{
-				LineLayout.Dispose();
-				LineLayout = null;
-			}
-			if (PositionColorEffect != null)
-			{
-				PositionColorEffect.Dispose();
-				PositionColorEffect = null;
-			}
-
 			if ((renderControl != null) && !renderControl.IsDisposed)
 			{
 				UnregisterControlEvents();
 				renderControl = null;
-			}
-
-			if (depthStencilView != null)
-			{
-				depthStencilView.Dispose();
-				depthStencilView = null;
-			}
-			if (depthStencilBuffer != null)
-			{
-				depthStencilBuffer.Dispose();
-				depthStencilBuffer = null;
-			}
-
-			if (renderTarget != null)
-			{
-				renderTarget.Dispose();
-				renderTarget = null;
-			}
-
-			if (transparentBS != null)
-			{
-				transparentBS.Dispose();
-				transparentBS = null;
 			}
 
 			if (swapChain != null)
@@ -603,14 +254,21 @@ namespace SB3Utility
 				swapChain = null;
 			}
 
-/*			if (TextFont != null)
+			if (TextFont != null)
 			{
 				TextFont.Dispose();
 				TextFont = null;
-			}*/
+			}
+
+			if (CursorMesh != null)
+			{
+				CursorMesh.Dispose();
+				CursorMesh = null;
+			}
 
 			if (Device != null)
 			{
+				Device.Direct3D.Dispose();
 				Device.Dispose();
 				Device = null;
 			}
@@ -662,44 +320,26 @@ namespace SB3Utility
 
 		void CreateSwapChain()
 		{
+			if (swapChain != null)
+			{
+				swapChain.Dispose();
+				swapChain = null;
+			}
+
 			if ((renderControl.Width > 0) && (renderControl.Height > 0) && renderControl.Visible)
 			{
+				PresentParameters presentParams = new PresentParameters();
+				presentParams.Windowed = true;
+				presentParams.SwapEffect = SwapEffect.Discard;
+				presentParams.BackBufferCount = 1;
+				presentParams.BackBufferWidth = renderControl.Width;
+				presentParams.BackBufferHeight = renderControl.Height;
 				try
 				{
-					if (renderTarget != null)
-					{
-						renderTarget.Dispose();
-						renderTarget = null;
-					}
-
-					swapChain.ResizeBuffers(1, renderControl.Width, renderControl.Height, Format.R8G8B8A8_UNorm, SwapChainFlags.AllowModeSwitch);
-					using (var resource = Resource.FromSwapChain<Texture2D>(swapChain, 0))
-						renderTarget = new RenderTargetView(Device, resource);
-
-					Texture2DDescription depthStencilDesc = new Texture2DDescription
-					{
-						Width = renderControl.Width,
-						Height = renderControl.Height,
-						MipLevels = 1,
-						ArraySize = 1,
-						Format = Format.D24_UNorm_S8_UInt,
-						SampleDescription = new SampleDescription(1, 0),
-						Usage = ResourceUsage.Default,
-						BindFlags = BindFlags.DepthStencil,
-						CpuAccessFlags = CpuAccessFlags.None,
-						OptionFlags = ResourceOptionFlags.None
-					};
-					depthStencilBuffer = new Texture2D(Device, depthStencilDesc) { DebugName = "DepthStencilBuffer" };
-					depthStencilView = new DepthStencilView(Device, depthStencilBuffer);
-
-					Device.ImmediateContext.OutputMerger.SetTargets(depthStencilView, renderTarget);
-
-					var viewport = new Viewport(0.0f, 0.0f, renderControl.Width, renderControl.Height, 0f, 1f);
-					Device.ImmediateContext.Rasterizer.SetViewports(viewport);
+					swapChain = new SwapChain(Device, presentParams);
 				}
-				catch (Exception e)
+				catch
 				{
-					Utility.ReportException(e);
 					deviceLost = true;
 				}
 				renderRect = new Rectangle(0, 0, renderControl.Width, renderControl.Height);
@@ -768,7 +408,7 @@ namespace SB3Utility
 			Vector3 center = (bounds.Minimum + bounds.Maximum) / 2;
 			float radius = Math.Max(bounds.Maximum.X - bounds.Minimum.X, bounds.Maximum.Y - bounds.Minimum.Y);
 			radius = Math.Max(radius, bounds.Maximum.Z - bounds.Minimum.Z) * 1.7f;
-			camera.radius = first ? 1 : radius;
+			camera.radius = radius;
 			camera.SetTarget(center);
 			Render();
 		}
@@ -790,30 +430,21 @@ namespace SB3Utility
 				if (isInitialized && !isRendering && (swapChain != null))
 				{
 					isRendering = true;
-					if ((Control.ModifierKeys & Keys.Shift) != Keys.None || !LockLight)
+					using (Surface surface = swapChain.GetBackBuffer(0))
 					{
-						Lights[0].Direction = -Vector3.Normalize(camera.Direction);
+						Device.SetRenderTarget(0, surface);
 					}
-					normalMapEffect.SetDirLights(Lights);
 
-					Device.ImmediateContext.ClearRenderTargetView(renderTarget, new Color4(Background));
-					Device.ImmediateContext.ClearDepthStencilView(depthStencilView, DepthStencilClearFlags.Depth | DepthStencilClearFlags.Stencil, 1.0f, 0);
+					Light light = this.Device.GetLight(0);
+					light.Direction = camera.Direction;
+					Device.SetLight(0, light);
 
-					Core.FX.ExtendedNormalMapEffect effect = (Core.FX.ExtendedNormalMapEffect)Effect;
-					effect.SetWorld(Matrix.Identity);
-					effect.SetWorldInvTranspose(Matrix.Identity);
+					Device.SetTransform(TransformState.View, camera.View);
+					Device.SetTransform(TransformState.Projection, camera.Projection);
 
-/*					Matrix toTexSpace = Matrix.Identity;
-					toTexSpace.M11 = 0.5f;
-					toTexSpace.M22 = -0.5f;
-					toTexSpace.M41 = 0.5f;
-					toTexSpace.M42 = 0.5f;
-					effect.SetWorldViewProjTex(Matrix.Identity * toTexSpace);*/
+					Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Background, 1.0f, 0);
+					Device.BeginScene();
 
-					Matrix wvp = camera.View * camera.Projection;
-					effect.SetEyePosW(camera.position);
-					effect.SetWorldViewProj(wvp);
-//					effect.SetShadowTransform(Matrix.Identity);
 					foreach (var pair in renderObjects)
 					{
 						pair.Value.Render();
@@ -821,35 +452,35 @@ namespace SB3Utility
 
 					if (mouseDown != MouseButtons.None)
 					{
-						DrawAxes();
 						DrawCursor();
+						DrawAxes();
 
-/*						string camStr = "(" + camera.target.X.ToString("0.##") + ", " + camera.target.Y.ToString("0.##") + ", " + camera.target.Z.ToString("0.##") + ")";
-						TextFont.DrawString(null, camStr, renderRect, DrawTextFormat.Right | DrawTextFormat.Top, TextColor);*/
+						string camStr = "(" + camera.target.X.ToString("0.##") + ", " + camera.target.Y.ToString("0.##") + ", " + camera.target.Z.ToString("0.##") + ")";
+						TextFont.DrawString(null, camStr, renderRect, DrawTextFormat.Right | DrawTextFormat.Top, TextColor);
 					}
 
-					swapChain.Present(0, PresentFlags.None);
+					Device.EndScene();
+					swapChain.Present(Present.None, renderRect, renderRect, renderControl.Handle);
 
 					isRendering = false;
 				}
 			}
-			catch (Exception e)
+			catch
 			{
-				Utility.ReportException(e);
 				isInitialized = false;
 				isRendering = false;
 				ReinitializeRenderer();
 				isInitialized = true;
 				if (!deviceLost)
 				{
-//					Render();
+					Render();
 				}
 			}
 		}
 
 		private void ReinitializeRenderer()
 		{
-/*			if (swapChain != null)
+			if (swapChain != null)
 			{
 				swapChain.Dispose();
 				swapChain = null;
@@ -910,25 +541,80 @@ namespace SB3Utility
 			Culling = true;
 			Background = Color.FromArgb(int.Parse((string)Gui.Config["RendererBackgroundARGB"], System.Globalization.NumberStyles.AllowHexSpecifier));
 
-			RenderControl = renderControl;*/
+			RenderControl = renderControl;
 		}
 
 		void DrawCursor()
 		{
+			Device.SetRenderState(RenderState.AlphaBlendEnable, true);
+			Device.SetRenderState(RenderState.BlendOperationAlpha, BlendOperation.Add);
+
+// shifting colour depending on distance
+			Device.SetRenderState(RenderState.SourceBlend, Blend.InverseDestinationColor);
+			Device.SetRenderState(RenderState.DestinationBlend, Blend.DestinationColor);
+
+// a bit dark
+/*
+			Device.SetRenderState(RenderState.SourceBlend, Blend.DestinationColor);
+			Device.SetRenderState(RenderState.DestinationBlend, Blend.DestinationColor);
+ */
+
+			Device.SetRenderState(RenderState.ZEnable, ZBufferType.DontUseZBuffer);
+			Device.SetRenderState(RenderState.ZWriteEnable, false);
+
+			Device.SetRenderState(RenderState.VertexBlend, VertexBlend.Disable);
+			Device.SetRenderState(RenderState.Lighting, true);
+			Device.SetRenderState(RenderState.FillMode, FillMode.Solid);
+			Device.SetRenderState(RenderState.CullMode, Cull.None);
 			Vector3 v = camera.target - camera.position;
 			float distScaled = v.Length() / 25f;
-			Matrix wvp = Matrix.Scaling(distScaled, distScaled, distScaled) * Matrix.Translation(camera.target) * camera.View * camera.Projection;
-			PositionColorEffect.SetWorldViewProj(wvp);
+			Device.SetTransform(TransformState.World, Matrix.Scaling(distScaled, distScaled, distScaled) * Matrix.Translation(camera.target));
 
-			CursorMesh.Render();
+			Light light = Device.GetLight(0);
+			Color4 ambient = light.Ambient;
+			Color4 diffuse = light.Diffuse;
+
+			light.Ambient = new Color4(1, 0.03f, 0.03f, 0.03f);
+			light.Diffuse = new Color4(1, 0.8f, 0.8f, 0.8f);
+			Device.SetLight(0, light);
+
+			Device.Material = CursorMaterial;
+			Device.SetTexture(0, null);
+			CursorMesh.DrawSubset(0);
+
+			light.Ambient = ambient;
+			light.Diffuse = diffuse;
+			Device.SetLight(0, light);
+
+			Device.SetRenderState(RenderState.SourceBlend, Blend.SourceAlpha);
+			Device.SetRenderState(RenderState.DestinationBlend, Blend.InverseSourceAlpha);
+			Device.SetRenderState(RenderState.ZEnable, ZBufferType.UseZBuffer);
+			Device.SetRenderState(RenderState.ZWriteEnable, true);
 		}
 
 		void DrawAxes()
 		{
-			Matrix wvp = camera.View * camera.Projection;
-			PositionColorEffect.SetWorldViewProj(wvp);
+			PositionColored[] xAxis = new PositionColored[2] {
+				new PositionColored(new Vector3(0), Color.Red.ToArgb()),
+				new PositionColored(new Vector3(10, 0, 0), Color.Red.ToArgb()) };
+			PositionColored[] yAxis = new PositionColored[2] {
+				new PositionColored(new Vector3(0), Color.Green.ToArgb()),
+				new PositionColored(new Vector3(0, 10, 0), Color.Green.ToArgb()) };
+			PositionColored[] zAxis = new PositionColored[2] {
+				new PositionColored(new Vector3(0), Color.Blue.ToArgb()),
+				new PositionColored(new Vector3(0, 0, 10), Color.Blue.ToArgb()) };
 
-			AxesMesh.Render();
+			Device.SetRenderState(RenderState.ZEnable, ZBufferType.UseZBuffer);
+			Device.SetRenderState(RenderState.VertexBlend, VertexBlend.Disable);
+			Device.SetRenderState(RenderState.Lighting, false);
+			Device.SetTransform(TransformState.World, Matrix.Identity);
+			Device.VertexFormat = PositionColored.Format;
+			Device.Material = Renderer.NullMaterial;
+			Device.SetTexture(0, null);
+
+			Device.DrawUserPrimitives(PrimitiveType.LineList, 1, xAxis);
+			Device.DrawUserPrimitives(PrimitiveType.LineList, 1, yAxis);
+			Device.DrawUserPrimitives(PrimitiveType.LineList, 1, zAxis);
 		}
 
 		private void renderControl_MouseDown(object sender, MouseEventArgs e)
@@ -1101,8 +787,8 @@ namespace SB3Utility
 
 		public void Rotate(float h, float v)
 		{
-			hRotation += (h + Math.Sign(h)) * Sensitivity;
-			vRotation += (v + Math.Sign(v)) * Sensitivity;
+			hRotation += h * Sensitivity + Math.Sign(h) * radius / 1000;
+			vRotation += v * Sensitivity + Math.Sign(v) * radius / 1000;
 
 			UpdatePosition();
 		}
@@ -1161,14 +847,14 @@ namespace SB3Utility
 	public struct PositionColored
 	{
 		public Vector3 Position;
-		public Color4 Color;
+		public int Color;
 
-		public PositionColored(Vector3 pos, Color4 color)
+		public static readonly VertexFormat Format = VertexFormat.Position | VertexFormat.Diffuse;
+
+		public PositionColored(Vector3 pos, int color)
 		{
 			Position = pos;
 			Color = color;
 		}
-
-		public static readonly int Stride = Marshal.SizeOf(typeof(PositionColored));
 	}
 }

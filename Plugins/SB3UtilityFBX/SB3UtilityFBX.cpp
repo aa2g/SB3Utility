@@ -205,7 +205,7 @@ namespace SB3Utility
 		FbxPropertyT<FbxDouble3> scale = FbxProperty::Create(pScene, FbxDouble3DT, InterpolationHelper::pScaleName);
 		FbxPropertyT<FbxDouble4> rotate = FbxProperty::Create(pScene, FbxDouble4DT, InterpolationHelper::pRotateName);
 		FbxPropertyT<FbxDouble3> translate = FbxProperty::Create(pScene, FbxDouble3DT, InterpolationHelper::pTranslateName);
-		InterpolationHelper^ interpolationHelper = gcnew InterpolationHelper(pScene, pAnimLayer, linear ? FbxAnimCurveDef::eInterpolationLinear : FbxAnimCurveDef::eInterpolationCubic, false, 0, &scale, &rotate, &translate);
+		InterpolationHelper^ interpolationHelper = gcnew InterpolationHelper(pScene, pAnimLayer, linear ? FbxAnimCurveDef::eInterpolationLinear : FbxAnimCurveDef::eInterpolationCubic, &scale, &rotate, &translate);
 
 		FbxTime time;
 		float animationLen = (float)(resampleCount - 1);
@@ -227,7 +227,7 @@ namespace SB3Utility
 		}
 	}
 
-	void Fbx::InterpolateSampledTracks(List<Tuple<ImportedAnimationTrack^, ImportedAnimationSampledTrack^>^>^ extendedTrackList, int resampleCount, bool linear, bool EulerFilter, float filterPrecision)
+	void Fbx::InterpolateSampledTracks(List<Tuple<ImportedAnimationTrack^, ImportedAnimationSampledTrack^>^>^ extendedTrackList, int resampleCount, bool linear)
 	{
 		FbxManager* pSdkManager = NULL;
 		FbxScene* pScene = NULL;
@@ -242,7 +242,7 @@ namespace SB3Utility
 		FbxPropertyT<FbxDouble3> scale = FbxProperty::Create(pScene, FbxDouble3DT, InterpolationHelper::pScaleName);
 		FbxPropertyT<FbxDouble4> rotate = FbxProperty::Create(pScene, FbxDouble4DT, InterpolationHelper::pRotateName);
 		FbxPropertyT<FbxDouble3> translate = FbxProperty::Create(pScene, FbxDouble3DT, InterpolationHelper::pTranslateName);
-		InterpolationHelper^ interpolationHelper = gcnew InterpolationHelper(pScene, pAnimLayer, linear ? FbxAnimCurveDef::eInterpolationLinear : FbxAnimCurveDef::eInterpolationCubic, EulerFilter, filterPrecision, &scale, &rotate, &translate);
+		InterpolationHelper^ interpolationHelper = gcnew InterpolationHelper(pScene, pAnimLayer, linear ? FbxAnimCurveDef::eInterpolationLinear : FbxAnimCurveDef::eInterpolationCubic, &scale, &rotate, &translate);
 
 		FbxTime time;
 		float animationLen = (float)(resampleCount - 1);
@@ -254,7 +254,6 @@ namespace SB3Utility
 			newSampledTrack->Scalings = interpolatedSampledTrack->Scalings;
 			newSampledTrack->Rotations = interpolatedSampledTrack->Rotations;
 			newSampledTrack->Translations = interpolatedSampledTrack->Translations;
-			newSampledTrack->Curve = interpolatedSampledTrack->Curve;
 		}
 
 		if (pScene != NULL)
@@ -267,8 +266,7 @@ namespace SB3Utility
 		}
 	}
 
-	Fbx::InterpolationHelper::InterpolationHelper(FbxScene* scene, FbxAnimLayer* layer,
-			FbxAnimCurveDef::EInterpolationType interpolationMethod, bool EulerFilter, float filterPrecision,
+	Fbx::InterpolationHelper::InterpolationHelper(FbxScene* scene, FbxAnimLayer* layer, FbxAnimCurveDef::EInterpolationType interpolationMethod,
 			FbxPropertyT<FbxDouble3>* scale, FbxPropertyT<FbxDouble4>* rotate, FbxPropertyT<FbxDouble3>* translate)
 	{
 		pScene = scene;
@@ -296,9 +294,6 @@ namespace SB3Utility
 		pRotateCurveY = pRotateCurveNode->CreateCurve(pRotateName, 1U);
 		pRotateCurveZ = pRotateCurveNode->CreateCurve(pRotateName, 2U);
 		pRotateCurveW = pRotateCurveNode->CreateCurve(pRotateName, 3U);
-
-		lFilter = EulerFilter ? new FbxAnimCurveFilterUnroll() : NULL;
-		this->filterPrecision = filterPrecision;
 
 		// T
 		this->translate = translate;
@@ -411,172 +406,83 @@ namespace SB3Utility
 		FbxTime time;
 		float animationLen = (float)(resampleCount - 1);
 
-		ImportedAnimationSampledTrack^ newTrack = gcnew ImportedAnimationSampledTrack();
-
 		array<Nullable<Vector3>>^ scalings = track->Scalings;
-		if (scalings)
+		int endIdx = scalings->Length - 1;
+		for (int i = 0; i <= endIdx; i++)
 		{
-			if (resampleCount < 0)
-			{
-				resampleCount = scalings->Length;
-				animationLen = (float)(resampleCount - 1);
-			}
+			if (!scalings[i].HasValue)
+				continue;
 
-			int endIdx = scalings->Length - 1;
-			for (int i = 0; i <= endIdx; i++)
-			{
-				if (!scalings[i].HasValue)
-					continue;
+			time.SetSecondDouble(i);
 
-				time.SetSecondDouble(i);
-
-				Vector3 s = scalings[i].Value;
-				ADD_KEY_VECTOR3(pScaleCurveX, pScaleCurveY, pScaleCurveZ, time, s, interpolationMethod);
-			}
-
-			newTrack->Scalings = gcnew array<Nullable<Vector3>>(resampleCount);
-			for (int i = 0; i < resampleCount; i++)
-			{
-				time.SetSecondDouble(i * endIdx / animationLen);
-				Vector3 s;
-				GET_KEY_VECTOR3(pScaleCurveX, pScaleCurveY, pScaleCurveZ, time, s);
-				newTrack->Scalings[i] = s;
-			}
+			Vector3 s = scalings[i].Value;
+			ADD_KEY_VECTOR3(pScaleCurveX, pScaleCurveY, pScaleCurveZ, time, s, interpolationMethod);
 		}
 
 		array<Nullable<Quaternion>>^ rotations = track->Rotations;
-		if (rotations)
+		endIdx = rotations->Length - 1;
+		Quaternion lastQ = Quaternion::Identity;
+		for (int i = 0, lastUsed_keyIndex = -1; i <= endIdx; i++)
 		{
-			if (resampleCount < 0)
+			if (!rotations[i].HasValue)
+				continue;
+
+			time.SetSecondDouble(i);
+
+			Quaternion q = rotations[i].Value;
+//			if (negateQuaternionFlips)
 			{
-				resampleCount = rotations->Length;
-				animationLen = (float)(resampleCount - 1);
+				if (lastUsed_keyIndex >= 0)
+				{
+					bool diffZ = Math::Sign(lastQ.Z) != Math::Sign(q.Z);
+					bool diffW = Math::Sign(lastQ.W) != Math::Sign(q.W);
+					if (diffZ && diffW)
+					{
+						q.X = -q.X;
+						q.Y = -q.Y;
+						q.Z = -q.Z;
+						q.W = -q.W;
+					}
+				}
+				lastQ = q;
+				lastUsed_keyIndex = i;
 			}
-
-			int endIdx = rotations->Length - 1;
-			if (lFilter)
-			{
-				for (int i = 0; i <= endIdx; i++)
-				{
-					if (!rotations[i].HasValue)
-						continue;
-
-					time.SetSecondDouble(i);
-
-					Vector3 r = Fbx::QuaternionToEuler(rotations[i].Value);
-					ADD_KEY_VECTOR3(pRotateCurveX, pRotateCurveY, pRotateCurveZ, time, r, interpolationMethod);
-				}
-
-				FbxAnimCurve* lCurve [3];
-				lCurve[0] = pRotateCurveX;
-				lCurve[1] = pRotateCurveY;
-				lCurve[2] = pRotateCurveZ;
-				lFilter->Reset();
-				lFilter->SetTestForPath(true);
-				lFilter->SetQualityTolerance(filterPrecision);
-				lFilter->Apply((FbxAnimCurve**)lCurve, 3);
-
-				newTrack->Rotations = gcnew array<Nullable<Quaternion>>(resampleCount);
-				for (int i = 0; i < resampleCount; i++)
-				{
-					time.SetSecondDouble(i * endIdx / animationLen);
-					Vector3 r;
-					GET_KEY_VECTOR3(pRotateCurveX, pRotateCurveY, pRotateCurveZ, time, r);
-					newTrack->Rotations[i] = Fbx::EulerToQuaternion(r);
-				}
-			}
-			else
-			{
-				for (int i = 0; i <= endIdx; i++)
-				{
-					if (!rotations[i].HasValue)
-						continue;
-
-					time.SetSecondDouble(i);
-
-					Quaternion q = rotations[i].Value;
-					ADD_KEY_VECTOR4(pRotateCurveX, pRotateCurveY, pRotateCurveZ, pRotateCurveW, time, q, interpolationMethod);
-				}
-
-				newTrack->Rotations = gcnew array<Nullable<Quaternion>>(resampleCount);
-				for (int i = 0; i < resampleCount; i++)
-				{
-					time.SetSecondDouble(i * endIdx / animationLen);
-					Quaternion q;
-					GET_KEY_VECTOR4(pRotateCurveX, pRotateCurveY, pRotateCurveZ, pRotateCurveW, time, q);
-					newTrack->Rotations[i] = q;
-				}
-			}
+			ADD_KEY_VECTOR4(pRotateCurveX, pRotateCurveY, pRotateCurveZ, pRotateCurveW, time, q, interpolationMethod);
 		}
 
 		array<Nullable<Vector3>>^ translations = track->Translations;
-		if (translations)
+		endIdx = translations->Length - 1;
+		for (int i = 0; i <= endIdx; i++)
 		{
-			if (resampleCount < 0)
-			{
-				resampleCount = translations->Length;
-				animationLen = (float)(resampleCount - 1);
-			}
+			if (!translations[i].HasValue)
+				continue;
 
-			int endIdx = translations->Length - 1;
-			for (int i = 0; i <= endIdx; i++)
-			{
-				if (!translations[i].HasValue)
-					continue;
+			time.SetSecondDouble(i);
 
-				time.SetSecondDouble(i);
+			Vector3 t = translations[i].Value;
+			ADD_KEY_VECTOR3(pTranslateCurveX, pTranslateCurveY, pTranslateCurveZ, time, t, interpolationMethod);
+		}
 
-				Vector3 t = translations[i].Value;
-				ADD_KEY_VECTOR3(pTranslateCurveX, pTranslateCurveY, pTranslateCurveZ, time, t, interpolationMethod);
-			}
-
-			newTrack->Translations = gcnew array<Nullable<Vector3>>(resampleCount);
-			for (int i = 0; i < resampleCount; i++)
-			{
-				time.SetSecondDouble(i * endIdx / animationLen);
-				Vector3 t;
-				GET_KEY_VECTOR3(pTranslateCurveX, pTranslateCurveY, pTranslateCurveZ, time, t);
-				newTrack->Translations[i] = t;
-			}
+		ImportedAnimationSampledTrack^ newTrack = gcnew ImportedAnimationSampledTrack();
+		newTrack->Scalings = gcnew array<Nullable<Vector3>>(resampleCount);
+		newTrack->Rotations = gcnew array<Nullable<Quaternion>>(resampleCount);
+		newTrack->Translations = gcnew array<Nullable<Vector3>>(resampleCount);
+		for (int i = 0; i < resampleCount; i++)
+		{
+			time.SetSecondDouble(i * endIdx / animationLen);
+			Vector3 s, t;
+			GET_KEY_VECTOR3(pScaleCurveX, pScaleCurveY, pScaleCurveZ, time, s);
+			newTrack->Scalings[i] = s;
+			Quaternion q;
+			GET_KEY_VECTOR4(pRotateCurveX, pRotateCurveY, pRotateCurveZ, pRotateCurveW, time, q);
+			newTrack->Rotations[i] = q;
+			GET_KEY_VECTOR3(pTranslateCurveX, pTranslateCurveY, pTranslateCurveZ, time, t);
+			newTrack->Translations[i] = t;
 		}
 
 		for each (FbxAnimCurve* pCurve in allCurves)
 		{
 			pCurve->KeyClear();
-		}
-
-		array<Nullable<float>>^ morphKeys = track->Curve;
-		if (morphKeys)
-		{
-			if (resampleCount < 0)
-			{
-				resampleCount = morphKeys->Length;
-				animationLen = (float)(resampleCount - 1);
-			}
-
-			int endIdx = morphKeys->Length - 1;
-			for (int i = 0; i <= endIdx; i++)
-			{
-				if (!morphKeys[i].HasValue)
-				{
-					continue;
-				}
-
-				time.SetSecondDouble(i);
-
-				float f = morphKeys[i].Value;
-				int keyIndex = pTranslateCurveX->KeyAdd(time);
-				pTranslateCurveX->KeySet(keyIndex, time, f, interpolationMethod);
-			}
-
-			newTrack->Curve = gcnew array<Nullable<float>>(resampleCount);
-			for (int i = 0; i < resampleCount; i++)
-			{
-				time.SetSecondDouble(i * endIdx / animationLen);
-				newTrack->Curve[i] = pTranslateCurveX->Evaluate(time);
-			}
-
-			pTranslateCurveX->KeyClear();
 		}
 
 		return newTrack;

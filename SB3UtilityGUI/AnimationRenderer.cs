@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using SlimDX;
+using SlimDX.Direct3D9;
 
 namespace SB3Utility
 {
@@ -151,7 +152,7 @@ namespace SB3Utility
 			foreach (var pair in renderObjects)
 			{
 				AnimationController animationController = pair.Value.AnimationController;
-				animationController.SetTrackSpeed(id, 1);
+				animationController.SetTrackSpeed(id, 1);		
 				animationController.AdvanceTime(time, handler);
 				animationController.SetTrackSpeed(id, 0);
 			}

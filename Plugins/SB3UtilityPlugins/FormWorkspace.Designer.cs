@@ -53,17 +53,12 @@
 			this.contextMenuStripMorphKeyframe = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.renameToToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripEditTextBoxNewMorphKeyframeName = new SB3Utility.ToolStripEditTextBox();
-			this.contextMenuStripMaterial = new System.Windows.Forms.ContextMenuStrip(this.components);
-			this.toolStripMenuItemTextureMapping = new System.Windows.Forms.ToolStripMenuItem();
-			this.toolStripMenuItemTextureMappingDefault = new System.Windows.Forms.ToolStripMenuItem();
-			this.toolStripMenuItemTextureMappingPrompt = new System.Windows.Forms.ToolStripMenuItem();
 			this.treeView = new SB3Utility.TriStateTreeView();
 			this.panel1.SuspendLayout();
 			this.panel2.SuspendLayout();
 			this.menuStrip1.SuspendLayout();
 			this.contextMenuStripSubmesh.SuspendLayout();
 			this.contextMenuStripMorphKeyframe.SuspendLayout();
-			this.contextMenuStripMaterial.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// panel1
@@ -184,7 +179,7 @@
             this.materialNameToolStripMenuItem,
             this.worldCoordinatesToolStripMenuItem});
 			this.contextMenuStripSubmesh.Name = "contextMenuStripSubmesh";
-			this.contextMenuStripSubmesh.Size = new System.Drawing.Size(198, 92);
+			this.contextMenuStripSubmesh.Size = new System.Drawing.Size(198, 114);
 			this.contextMenuStripSubmesh.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripSubmesh_Opening);
 			// 
 			// targetPositionToolStripMenuItem
@@ -257,41 +252,6 @@
 			this.toolStripEditTextBoxNewMorphKeyframeName.Size = new System.Drawing.Size(120, 21);
 			this.toolStripEditTextBoxNewMorphKeyframeName.AfterEditTextChanged += new System.EventHandler(this.toolStripEditTextBoxNewMorphKeyframeName_AfterEditTextChanged);
 			// 
-			// contextMenuStripMaterial
-			// 
-			this.contextMenuStripMaterial.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItemTextureMapping});
-			this.contextMenuStripMaterial.Name = "contextMenuStripMaterial";
-			this.contextMenuStripMaterial.Size = new System.Drawing.Size(156, 48);
-			this.contextMenuStripMaterial.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripMaterial_Opening);
-			// 
-			// toolStripMenuItemTextureMapping
-			// 
-			this.toolStripMenuItemTextureMapping.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItemTextureMappingDefault,
-            this.toolStripMenuItemTextureMappingPrompt});
-			this.toolStripMenuItemTextureMapping.Name = "toolStripMenuItemTextureMapping";
-			this.toolStripMenuItemTextureMapping.Size = new System.Drawing.Size(155, 22);
-			this.toolStripMenuItemTextureMapping.Text = "Texture Mapping";
-			// 
-			// toolStripMenuItemTextureMappingDefault
-			// 
-			this.toolStripMenuItemTextureMappingDefault.Checked = true;
-			this.toolStripMenuItemTextureMappingDefault.CheckOnClick = true;
-			this.toolStripMenuItemTextureMappingDefault.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.toolStripMenuItemTextureMappingDefault.Name = "toolStripMenuItemTextureMappingDefault";
-			this.toolStripMenuItemTextureMappingDefault.Size = new System.Drawing.Size(152, 22);
-			this.toolStripMenuItemTextureMappingDefault.Text = "Default";
-			this.toolStripMenuItemTextureMappingDefault.Click += new System.EventHandler(this.toolStripMenuItemTextureMapping_Click);
-			// 
-			// toolStripMenuItemTextureMappingPrompt
-			// 
-			this.toolStripMenuItemTextureMappingPrompt.CheckOnClick = true;
-			this.toolStripMenuItemTextureMappingPrompt.Name = "toolStripMenuItemTextureMappingPrompt";
-			this.toolStripMenuItemTextureMappingPrompt.Size = new System.Drawing.Size(152, 22);
-			this.toolStripMenuItemTextureMappingPrompt.Text = "Prompt";
-			this.toolStripMenuItemTextureMappingPrompt.Click += new System.EventHandler(this.toolStripMenuItemTextureMapping_Click);
-			// 
 			// treeView
 			// 
 			this.treeView.AllowDrop = true;
@@ -329,7 +289,6 @@
 			this.menuStrip1.PerformLayout();
 			this.contextMenuStripSubmesh.ResumeLayout(false);
 			this.contextMenuStripMorphKeyframe.ResumeLayout(false);
-			this.contextMenuStripMaterial.ResumeLayout(false);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -360,10 +319,6 @@
 		private System.Windows.Forms.ToolStripMenuItem logMessagesToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem scriptingToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem automaticReopenToolStripMenuItem;
-		private System.Windows.Forms.ContextMenuStrip contextMenuStripMaterial;
-		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemTextureMapping;
-		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemTextureMappingDefault;
-		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemTextureMappingPrompt;
 
 	}
 }

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using System.Text.RegularExpressions;
 using WeifenLuo.WinFormsUI.Docking;
 
 using SB3Utility;
@@ -24,12 +22,6 @@ namespace SB3Utility
 				animationList.Font = new System.Drawing.Font(animationList.Font.FontFamily, listViewFontSize);
 				otherList.Font = new System.Drawing.Font(otherList.Font.FontFamily, listViewFontSize);
 			}
-
-			ListViewItemComparer comparer = new ListViewItemComparer();
-			archiveList.ListViewItemSorter = comparer;
-			meshList.ListViewItemSorter = comparer;
-			animationList.ListViewItemSorter = comparer;
-			otherList.ListViewItemSorter = comparer;
 
 			this.FormClosing += new FormClosingEventHandler(FormOpenedFiles_FormClosing);
 		}
@@ -104,7 +96,7 @@ namespace SB3Utility
 				}
 				hdr.ListView.Items.Add(item);
 				hdr.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
-				tabControlQuickAccess.SelectTabWithoutLosingFocus((TabPage)hdr.ListView.Parent);
+				tabControlQuickAccess.SelectTabWithoutLoosingFocus((TabPage)hdr.ListView.Parent);
 				ChildForms.Add(content, item);
 			}
 		}
@@ -115,36 +107,6 @@ namespace SB3Utility
 			{
 				((DockContent)e.Item.Tag).BringToFront();
 				e.Item.Selected = false;
-			}
-		}
-
-		class ListViewItemComparer : IComparer
-		{
-			public ListViewItemComparer() { }
-
-			public int Compare(object x, object y)
-			{
-				string[] xArr = Regex.Split(((ListViewItem)x).Text, @"(\D*)(\d+)(.*)");
-				string[] yArr = Regex.Split(((ListViewItem)y).Text, @"(\D*)(\d+)(.*)");
-
-				string xText = xArr.Length > 1 ? xArr[1] : xArr[0];
-				string yText = yArr.Length > 1 ? yArr[1] : yArr[0];
-				int cmp = String.Compare(xText, yText);
-				if (cmp != 0)
-				{
-					return cmp;
-				}
-
-				int xInt = xArr.Length > 2 ? int.Parse(xArr[2]) : 0;
-				int yInt = yArr.Length > 2 ? int.Parse(yArr[2]) : 0;
-				if (xInt != yInt)
-				{
-					return xInt - yInt;
-				}
-
-				xText = xArr.Length > 3 ? xArr[3] : string.Empty;
-				yText = yArr.Length > 3 ? yArr[3] : string.Empty;
-				return String.Compare(xText, yText);
 			}
 		}
 	}

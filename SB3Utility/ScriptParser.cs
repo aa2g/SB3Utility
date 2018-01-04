@@ -312,7 +312,7 @@ namespace SB3Utility
 					}
 					tokens.Add(new Token(sb.ToString(), TokenType.Name, scriptName, line, column));
 				}
-				else if (c == '-' && Char.IsDigit((char)reader.Peek()) || Char.IsDigit(c))
+				else if (Char.IsDigit(c))
 				{
 					var sb = new StringBuilder();
 					bool hex = c == '0' && (char)reader.Peek() == 'x';
@@ -323,7 +323,7 @@ namespace SB3Utility
 					while (!reader.EndOfStream && (reader.Peek() != -1))
 					{
 						c = (char)reader.Peek();
-						if (Char.IsDigit(c) || hex && (c >= 'A' && c <= 'F' || c >= 'a' && c <= 'f' || c == 'l' || c == 'L'))
+						if (Char.IsDigit(c) || hex && (c >= 'A' && c <= 'F' || c >= 'a' && c <= 'f'))
 						{
 							sb.Append(c);
 							reader.Read(ref line, ref column);

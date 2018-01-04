@@ -16,7 +16,7 @@ namespace SB3Utility
 				throw new Exception("Note! \"" + path + "\" is not opened as normal mqo.");
 
 			string importVar = Gui.Scripting.GetNextVariable("importMqo");
-			var importer = (Mqo.Importer)Gui.Scripting.RunScript(importVar + " = ImportMqo(\"" + path + "\", " + ((float)Gui.Config["MqoImportVertexScaling"]).ToFloatString() + ")");
+			var importer = (Mqo.Importer)Gui.Scripting.RunScript(importVar + " = ImportMqo(\"" + path + "\")");
 
 			string editorVar = Gui.Scripting.GetNextVariable("importedEditor");
 			var editor = (ImportedEditor)Gui.Scripting.RunScript(editorVar + " = ImportedEditor(" + importVar + ")");
@@ -29,7 +29,7 @@ namespace SB3Utility
 		public static void WorkspaceMorphMqo(string path, string variable)
 		{
 			string importVar = Gui.Scripting.GetNextVariable("importMorphMqo");
-			var importer = (Mqo.ImporterMorph)Gui.Scripting.RunScript(importVar + " = ImportMorphMqo(\"" + path + "\", " + ((float)Gui.Config["MqoImportVertexScaling"]).ToFloatString() + ")");
+			var importer = (Mqo.ImporterMorph)Gui.Scripting.RunScript(importVar + " = ImportMorphMqo(\"" + path + "\")");
 
 			string editorVar = Gui.Scripting.GetNextVariable("importedEditor");
 			var editor = (ImportedEditor)Gui.Scripting.RunScript(editorVar + " = ImportedEditor(" + importVar + ")");
@@ -64,15 +64,15 @@ namespace SB3Utility
 		}
 
 		[Plugin]
-		public static Mqo.Importer ImportMqo([DefaultVar]string path, double vertexScaling)
+		public static Mqo.Importer ImportMqo([DefaultVar]string path)
 		{
-			return new Mqo.Importer(path, (float)vertexScaling);
+			return new Mqo.Importer(path);
 		}
 
 		[Plugin]
-		public static Mqo.ImporterMorph ImportMorphMqo([DefaultVar]string path, double vertexScaling)
+		public static Mqo.ImporterMorph ImportMorphMqo([DefaultVar]string path)
 		{
-			return new Mqo.ImporterMorph(path, (float)vertexScaling);
+			return new Mqo.ImporterMorph(path);
 		}
 	}
 
@@ -87,7 +87,7 @@ namespace SB3Utility
 			public List<ImportedAnimation> AnimationList { get; protected set; }
 			public List<ImportedMorph> MorphList { get; protected set; }
 
-			public Importer(string path, float vertexScaling = 10f)
+			public Importer(string path)
 			{
 				try
 				{
@@ -100,7 +100,7 @@ namespace SB3Utility
 						{
 							if (line.Contains("Object"))
 							{
-								MqoObject mqoObject = ParseObject(line, reader, vertexScaling);
+								MqoObject mqoObject = ParseObject(line, reader);
 								if (mqoObject != null)
 								{
 									mqoObjects.Add(mqoObject);
@@ -231,6 +231,16 @@ namespace SB3Utility
 			{
 				ImportedMesh meshList = new ImportedMesh();
 				meshList.Name = mqoObjects[0].name;
+				float scale = 1f;
+				if (!mqoObjects[0].worldCoords)
+				{
+					int startPos = meshList.Name.IndexOf("(Scale=");
+					if (startPos > 0)
+					{
+						int endPos = meshList.Name.IndexOf(')');
+						scale = 1f / Single.Parse(meshList.Name.Substring(startPos + 7, endPos - startPos - 7));
+					}
+				}
 				meshList.BoneList = new List<ImportedBone>(0);
 				meshList.SubmeshList = new List<ImportedSubmesh>(mqoObjects.Count);
 
@@ -272,7 +282,7 @@ namespace SB3Utility
 								vert.Weights = new float[4];
 								vert.Normal = new Vector3();
 								vert.UV = mqoFace.UVs[i];
-								vert.Position = mqoVert.coords;
+								vert.Position = mqoVert.coords * scale;
 
 								vertMap = new VertexMap { mqoIdx = mqoFace.vertexIndices[i], vert = vert };
 								vertexMapDic[mqoFaceMatIdxOffset].Add(mqoFace.vertexIndices[i], vertMap);
@@ -337,7 +347,7 @@ namespace SB3Utility
 				return meshList;
 			}
 
-			private static void ParseVertices(StreamReader reader, MqoObject mqoObject, float scale)
+			private static void ParseVertices(StreamReader reader, MqoObject mqoObject)
 			{
 				MqoVertex[] vertices = null;
 				string line;
@@ -370,7 +380,7 @@ namespace SB3Utility
 
 							for (int j = 0; j < 3; j++)
 							{
-								coords[j] /= scale;
+								coords[j] /= 10f;
 								if (coords[j].Equals(Single.NaN))
 								{
 									throw new Exception("vertex " + i + " has invalid coordinates in mesh object " + mqoObject.fullname);
@@ -463,7 +473,7 @@ namespace SB3Utility
 				mqoObject.faces = faceList.ToArray();
 			}
 
-			private static MqoObject ParseObject(string line, StreamReader reader, float vertexScaling)
+			private static MqoObject ParseObject(string line, StreamReader reader)
 			{
 				MqoObject mqoObject = new MqoObject();
 				try
@@ -478,15 +488,6 @@ namespace SB3Utility
 						mqoObject.worldCoords = true;
 						name = name.Replace("[W]", String.Empty);
 						name = name.Replace("[w]", String.Empty);
-					}
-
-					float scale = vertexScaling;
-					int startPos = name.IndexOf("(Scale=");
-					if (startPos > 0)
-					{
-						int endPos = name.IndexOf(')');
-						scale = Single.Parse(name.Substring(startPos + 7, endPos - startPos - 7));
-						name = name.Substring(0, startPos) + name.Substring(endPos + 1);
 					}
 
 					int posStart;
@@ -513,7 +514,7 @@ namespace SB3Utility
 					}
 					mqoObject.name = name;
 
-					ParseVertices(reader, mqoObject, scale);
+					ParseVertices(reader, mqoObject);
 					ParseFaces(reader, mqoObject);
 				}
 				catch (Exception ex)
@@ -534,46 +535,35 @@ namespace SB3Utility
 			public List<ImportedAnimation> AnimationList { get; protected set; }
 			public List<ImportedMorph> MorphList { get; protected set; }
 
-			public ImporterMorph(string path, float vertexScaling)
+			public ImporterMorph(string path)
 			{
 				try
 				{
-					Importer importer = new Importer(path, vertexScaling);
+					Importer importer = new Importer(path);
 					MorphList = new List<ImportedMorph>();
 
-					ImportedMorph morphList = null;
-					String lastGroup = String.Empty;
+					ImportedMorph morphList = new ImportedMorph();
+					MorphList.Add(morphList);
+					morphList.KeyframeList = new List<ImportedMorphKeyframe>(importer.MeshList.Count);
 					ImportedSubmesh firstVisibleSubmesh = null;
 					string firstVisibleMorph = null;
 					foreach (ImportedMesh meshList in importer.MeshList)
 					{
 						int dotPos = meshList.Name.IndexOf('.');
-						string meshName = dotPos >= 0 ? meshList.Name.Substring(0, dotPos) : meshList.Name;
-						int nextDot = dotPos >= 0 ? meshList.Name.IndexOf('.', dotPos + 1) : -1;
-						String group = nextDot >= 0 ? meshList.Name.Substring(dotPos + 1, nextDot - dotPos - 1) : "unknown_blendshape";
-						if (group != lastGroup)
+						if (dotPos >= 0 && morphList.Name == null)
 						{
-							morphList = new ImportedMorph();
-							morphList.Name = meshName;
-							morphList.ClipName = group;
-							MorphList.Add(morphList);
-							morphList.KeyframeList = new List<ImportedMorphKeyframe>(importer.MeshList.Count);
-							morphList.Channels = new List<Tuple<float, int, int>>(importer.MeshList.Count);
-							lastGroup = group;
+							morphList.Name = meshList.Name.Substring(0, dotPos);
 						}
-
 						foreach (ImportedSubmesh submesh in meshList.SubmeshList)
 						{
-							morphList.Channels.Add(new Tuple<float, int, int>(0f, morphList.KeyframeList.Count, 1));
 							ImportedMorphKeyframe morph = new ImportedMorphKeyframe();
 							morph.Name = meshList.Name;
-							dotPos = morph.Name.LastIndexOf('.');
+							dotPos = morph.Name.IndexOf('.');
 							if (dotPos >= 0)
 							{
 								morph.Name = morph.Name.Substring(dotPos + 1);
 							}
 							morph.VertexList = submesh.VertexList;
-							morph.Weight = 100f;
 							morphList.KeyframeList.Add(morph);
 
 							if (firstVisibleSubmesh == null && submesh.Visible)
@@ -641,13 +631,13 @@ namespace SB3Utility
 
 		public static class ExporterCommon
 		{
-			public static void WriteMeshObject(StreamWriter writer, List<ImportedVertex> vertexList, List<ImportedFace> faceList, int mqoMatIdx, bool[] colorVertex, float scale = 10)
+			public static void WriteMeshObject(StreamWriter writer, List<ImportedVertex> vertexList, List<ImportedFace> faceList, int mqoMatIdx, bool[] colorVertex)
 			{
 				writer.WriteLine("\tvertex " + vertexList.Count + " {");
 				for (int i = 0; i < vertexList.Count; i++)
 				{
 					ImportedVertex vertex = vertexList[i];
-					Vector3 pos = vertex.Position * scale;
+					Vector3 pos = vertex.Position * 10f;
 					writer.WriteLine("\t\t" + pos.X.ToFloatString() + " " + pos.Y.ToFloatString() + " " + pos.Z.ToFloatString());
 				}
 				writer.WriteLine("\t}");

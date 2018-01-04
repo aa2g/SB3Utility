@@ -83,14 +83,7 @@ namespace SB3Utility
 				}
 				else if (literal.Type == ExprType.HexInt)
 				{
-					if (literal.Value.EndsWith("L", true, null))
-					{
-						result = long.Parse(literal.Value.Substring(0, literal.Value.Length - 1), System.Globalization.NumberStyles.AllowHexSpecifier);
-					}
-					else
-					{
-						result = Int32.Parse(literal.Value, System.Globalization.NumberStyles.AllowHexSpecifier);
-					}
+					result = Int32.Parse(literal.Value, System.Globalization.NumberStyles.AllowHexSpecifier);
 				}
 				else if (literal.Type == ExprType.Null)
 				{

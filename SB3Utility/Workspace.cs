@@ -3,23 +3,6 @@ using System.Collections.Generic;
 
 namespace SB3Utility
 {
-	public class WorkspaceMaterial : ImportedMaterial
-	{
-		public enum Mapping { DEFAULT, PROMPT };
-		protected Mapping mapping;
-
-		public WorkspaceMaterial(ImportedMaterial importedMat) :
-			base()
-		{
-			this.Name = importedMat.Name;
-
-			mapping = Mapping.DEFAULT;
-		}
-
-		public Mapping GetMapping() { return mapping; }
-		public void SetMapping(Mapping m) { mapping = m; }
-	}
-
 	public class WorkspaceMesh : ImportedMesh
 	{
 		protected class AdditionalSubmeshOptions
@@ -99,8 +82,7 @@ namespace SB3Utility
 		public WorkspaceMorph(ImportedMorph importedMorph) :
 			base()
 		{
-			this.Name = importedMorph.ClipName + " [" + importedMorph.Name + "]";
-			this.ClipName = importedMorph.ClipName;
+			this.Name = importedMorph.Name;
 			this.KeyframeList = importedMorph.KeyframeList;
 			this.MorphedVertexIndices = importedMorph.MorphedVertexIndices;
 

@@ -50,7 +50,6 @@
 			this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
 			this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-			this.timeStampToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.menuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -122,7 +121,6 @@
             this.toolStripSeparator4,
             this.captureCommandsToolStripMenuItem,
             this.autosaveToolStripMenuItem,
-            this.timeStampToolStripMenuItem,
             this.toolStripSeparator3,
             this.clearToolStripMenuItem});
 			this.scriptToolStripMenuItem.Name = "scriptToolStripMenuItem";
@@ -132,7 +130,7 @@
 			// runToolStripMenuItem
 			// 
 			this.runToolStripMenuItem.Name = "runToolStripMenuItem";
-			this.runToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+			this.runToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
 			this.runToolStripMenuItem.Text = "&Run";
 			this.runToolStripMenuItem.Click += new System.EventHandler(this.runToolStripMenuItem_Click);
 			// 
@@ -146,26 +144,26 @@
 			// toolStripSeparator2
 			// 
 			this.toolStripSeparator2.Name = "toolStripSeparator2";
-			this.toolStripSeparator2.Size = new System.Drawing.Size(168, 6);
+			this.toolStripSeparator2.Size = new System.Drawing.Size(194, 6);
 			// 
 			// quickSaveSelectedToolStripMenuItem
 			// 
 			this.quickSaveSelectedToolStripMenuItem.Name = "quickSaveSelectedToolStripMenuItem";
-			this.quickSaveSelectedToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+			this.quickSaveSelectedToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
 			this.quickSaveSelectedToolStripMenuItem.Text = "Quick &Save Selected";
 			this.quickSaveSelectedToolStripMenuItem.Click += new System.EventHandler(this.quickSaveSelectedToolStripMenuItem_Click);
 			// 
 			// runQuickSavedToolStripMenuItem
 			// 
 			this.runQuickSavedToolStripMenuItem.Name = "runQuickSavedToolStripMenuItem";
-			this.runQuickSavedToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+			this.runQuickSavedToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
 			this.runQuickSavedToolStripMenuItem.Text = "Run &Quick Saved";
 			this.runQuickSavedToolStripMenuItem.Click += new System.EventHandler(this.runQuickSavedToolStripMenuItem_Click);
 			// 
 			// toolStripSeparator4
 			// 
 			this.toolStripSeparator4.Name = "toolStripSeparator4";
-			this.toolStripSeparator4.Size = new System.Drawing.Size(168, 6);
+			this.toolStripSeparator4.Size = new System.Drawing.Size(194, 6);
 			// 
 			// captureCommandsToolStripMenuItem
 			// 
@@ -173,7 +171,7 @@
 			this.captureCommandsToolStripMenuItem.CheckOnClick = true;
 			this.captureCommandsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.captureCommandsToolStripMenuItem.Name = "captureCommandsToolStripMenuItem";
-			this.captureCommandsToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+			this.captureCommandsToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
 			this.captureCommandsToolStripMenuItem.Text = "Ca&pture Commands";
 			// 
 			// autosaveToolStripMenuItem
@@ -182,18 +180,18 @@
 			this.autosaveToolStripMenuItem.CheckOnClick = true;
 			this.autosaveToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.autosaveToolStripMenuItem.Name = "autosaveToolStripMenuItem";
-			this.autosaveToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+			this.autosaveToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
 			this.autosaveToolStripMenuItem.Text = "&Autosave";
 			// 
 			// toolStripSeparator3
 			// 
 			this.toolStripSeparator3.Name = "toolStripSeparator3";
-			this.toolStripSeparator3.Size = new System.Drawing.Size(168, 6);
+			this.toolStripSeparator3.Size = new System.Drawing.Size(194, 6);
 			// 
 			// clearToolStripMenuItem
 			// 
 			this.clearToolStripMenuItem.Name = "clearToolStripMenuItem";
-			this.clearToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+			this.clearToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
 			this.clearToolStripMenuItem.Text = "&Clear";
 			this.clearToolStripMenuItem.Click += new System.EventHandler(this.clearToolStripMenuItem_Click);
 			// 
@@ -218,15 +216,6 @@
 			this.toolTip1.AutoPopDelay = 5000;
 			this.toolTip1.InitialDelay = 100;
 			this.toolTip1.ReshowDelay = 100;
-			// 
-			// timeStampToolStripMenuItem
-			// 
-			this.timeStampToolStripMenuItem.CheckOnClick = true;
-			this.timeStampToolStripMenuItem.Name = "timeStampToolStripMenuItem";
-			this.timeStampToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
-			this.timeStampToolStripMenuItem.Text = "&Timestamp [hh:mm]";
-			this.timeStampToolStripMenuItem.ToolTipText = "This makes scripts copied from the window invalid!\r\nYou would have to delete all " +
-    "timestamps manually.";
 			// 
 			// FormScript
 			// 
@@ -270,7 +259,6 @@
 		private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
 		private System.Windows.Forms.ToolStripMenuItem quickSavedToolStripMenuItem;
 		private System.Windows.Forms.ToolTip toolTip1;
-		private System.Windows.Forms.ToolStripMenuItem timeStampToolStripMenuItem;
 
 
 	}

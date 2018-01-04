@@ -41,33 +41,7 @@ namespace SB3Utility
 		{
 			try
 			{
-				foreach (ListViewItem item in listViewImages.Items)
-				{
-					PathVariable tag = (PathVariable)item.Tag;
-					if (Gui.Scripting.Variables[tag.Variable] == Gui.ImageControl.Image)
-					{
-						Gui.ImageControl.Image = null;
-						break;
-					}
-				}
 				Singleton = null;
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
-		}
-
-		void CustomDispose()
-		{
-			try
-			{
-				foreach (var item in files.Values)
-				{
-					PathVariable tag = (PathVariable)item.Tag;
-					Gui.Scripting.Variables.Remove(tag.Variable);
-				}
-				Gui.Scripting.Variables.Remove(Gui.ImageControl.ImageScriptVariable);
 			}
 			catch (Exception ex)
 			{
@@ -112,7 +86,6 @@ namespace SB3Utility
 		{
 			try
 			{
-				timerShowLastDroppedFile.Tag = null;
 				if (e.IsSelected)
 				{
 					PathVariable tag = (PathVariable)e.Item.Tag;
@@ -152,8 +125,6 @@ namespace SB3Utility
 		[PluginOpensFile(".dib")]
 		[PluginOpensFile(".hdr")]
 		[PluginOpensFile(".pfm")]
-		[PluginOpensFile(".tif")]
-		[PluginOpensFile(".tiff")]
 		public static void OpenImageFile(string path, string variable)
 		{
 			try
@@ -199,10 +170,6 @@ namespace SB3Utility
 					ListViewItem item = listViewImages.SelectedItems[0];
 					PathVariable tag = (PathVariable)item.Tag;
 					files.Remove(tag.Path);
-					if (Gui.Scripting.Variables[tag.Variable] == Gui.ImageControl.Image)
-					{
-						Gui.ImageControl.Image = null;
-					}
 					freeVariables.Add(tag.Variable);
 					item.Remove();
 				}

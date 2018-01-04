@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using System.Text;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -54,8 +53,6 @@ namespace SB3Utility
 
 				openFileDialog1.Filter = "All Files (*.*)|*.*";
 
-				Gui.Docking = this;
-
 				DockQuickAccess = new FormQuickAccess();
 				DockFiles = new DockContent();
 				DockEditors = new DockContent();
@@ -63,40 +60,33 @@ namespace SB3Utility
 
 				dockLog = new FormLog();
 				Report.Log += new Action<string>(dockLog.Logger);
-				Report.Timestamp = (bool)Gui.Config["LogEntriesTimestamp"];
 				Report.ReportLog("Settings are saved at " + Assembly.GetExecutingAssembly().Location + ".config");
-				Report.Status += new Action<string>(MDIParent_Status);
 
 				dockScript = new FormScript();
-				Gui.Scripting = dockScript;
-				this.FormClosing += new FormClosingEventHandler(MDIParent_FormClosing);
-
 				dockImage = new FormImage();
-				Gui.ImageControl = dockImage;
 				dockRenderer = new FormRenderer();
+
+				Gui.Scripting = dockScript;
+				Gui.Docking = this;
+				Gui.ImageControl = dockImage;
 				Gui.Renderer = dockRenderer.Renderer;
+
+				Report.Status += new Action<string>(MDIParent_Status);
+				this.FormClosing += new FormClosingEventHandler(MDIParent_FormClosing);
 
 				Gui.Scripting.Variables.Add(MainVar, this);
 				PluginManager.RegisterFunctions(Assembly.GetExecutingAssembly());
 
-				eulerFilterToolStripMenuItem.Checked = (bool)Gui.Config["FbxExportAnimationEulerFilter"];
 				eulerFilterToolStripMenuItem.CheckedChanged += eulerFilterToolStripMenuItem_CheckChanged;
 				toolStripEditTextBoxFilterPrecision.Text = ((Single)Gui.Config["FbxExportAnimationFilterPrecision"]).ToString();
 				toolStripEditTextBoxFilterPrecision.AfterEditTextChanged += toolStripEditTextBoxFilterPrecision_AfterEditTextChanged;
-				negateQuaternionFlipsToolStripMenuItem.Checked = (bool)Gui.Config["FbxImportAnimationNegateQuaternionFlips"];
 				negateQuaternionFlipsToolStripMenuItem.CheckedChanged += negateQuaternionFlipsToolStripMenuItem_CheckedChanged;
-				forceTypeSampledToolStripMenuItem.Checked = (bool)Gui.Config["FbxImportAnimationForceTypeSampled"];
-				forceTypeSampledToolStripMenuItem.CheckedChanged += forceTypeSampledToolStripMenuItem_CheckedChanged;
-				toolStripEditTextBoxMQOImportVertexScaling.Text = ((float)Gui.Config["MQOImportVertexScaling"]).ToFloatString();
-				toolStripEditTextBoxMQOImportVertexScaling.AfterEditTextChanged += toolStripEditTextBoxMQOImportVertexScaling_AfterEditTextChanged;
 				toolStripEditTextBoxSwapThesholdMB.Text = ((long)Gui.Config["PrivateMemSwapThresholdMB"]).ToString();
 				toolStripEditTextBoxSwapThesholdMB.AfterEditTextChanged += toolStripEditTextBoxSwapThesholdMB_AfterEditTextChanged;
 				toolStripEditTextBoxTreeViews.Text = ((float)Gui.Config["TreeViewFontSize"]).ToFloatString();
 				toolStripEditTextBoxTreeViews.AfterEditTextChanged += toolStripEditTextBoxTreeViews_AfterEditTextChanged;
 				toolStripEditTextBoxListViews.Text = ((float)Gui.Config["ListViewFontSize"]).ToFloatString();
 				toolStripEditTextBoxListViews.AfterEditTextChanged += toolStripEditTextBoxListViews_AfterEditTextChanged;
-				dockingToolStripMenuItem.Checked = (bool)Gui.Config["Docking"];
-				dockingToolStripMenuItem.CheckedChanged += dockingToolStripMenuItem_CheckedChanged;
 			}
 			catch (Exception ex)
 			{
@@ -133,8 +123,6 @@ namespace SB3Utility
 					}
 				}
 
-				dockScript.Close();
-
 				string pluginsDoNotLoad = String.Empty;
 				foreach (var plugin in PluginManager.DoNotLoad)
 				{
@@ -166,20 +154,12 @@ namespace SB3Utility
 				SetDockDefault(DockQuickAccess, "Quick Access");
 				DockQuickAccess.Show(DockFiles.Pane, DockAlignment.Top, 0.3);
 
-				try
-				{
-					SetDockDefault(DockRenderer, "Renderer");
-					DockRenderer.Show(dockPanel, DockState.DockRight);
-				}
-				catch { }
+				SetDockDefault(DockRenderer, "Renderer");
+				DockRenderer.Show(dockPanel, DockState.DockRight);
 
-				try
-				{
-					SetDockDefault(DockImage, "Image");
-					DockImage.Show(dockPanel, DockState.DockRight);
-					DockRenderer.Activate();
-				}
-				catch { }
+				SetDockDefault(DockImage, "Image");
+				DockImage.Show(dockPanel, DockState.DockRight);
+				DockRenderer.Activate();
 
 				SetDockDefault(DockLog, "Log");
 				DockLog.Show(dockPanel, DockState.DockBottom);
@@ -195,7 +175,10 @@ namespace SB3Utility
 					new Tuple<DockContent, ToolStripMenuItem>(DockLog, viewLogToolStripMenuItem),
 					new Tuple<DockContent, ToolStripMenuItem>(DockScript, viewScriptToolStripMenuItem) };
 
-				viewQuickAccessToolStripMenuItem.Checked = true;
+				if (!(viewQuickAccessToolStripMenuItem.Checked = (bool)Gui.Config["QuickAccess"]))
+				{
+					DockQuickAccess.Hide();
+				}
 				viewFilesToolStripMenuItem.Checked = true;
 				viewEditorsToolStripMenuItem.Checked = true;
 				viewRendererToolStripMenuItem.Checked = true;
@@ -210,27 +193,13 @@ namespace SB3Utility
 				viewImageToolStripMenuItem.CheckedChanged += new EventHandler(viewImageToolStripMenuItem_CheckedChanged);
 				viewLogToolStripMenuItem.CheckedChanged += new EventHandler(viewLogToolStripMenuItem_CheckedChanged);
 				viewScriptToolStripMenuItem.CheckedChanged += new EventHandler(viewScriptToolStripMenuItem_CheckedChanged);
-				viewQuickAccessToolStripMenuItem.Checked = (bool)Gui.Config["QuickAccess"];
-				viewRendererToolStripMenuItem.Checked = (bool)Gui.Config["Renderer"];
-				viewImageToolStripMenuItem.Checked = (bool)Gui.Config["Image"];
-				viewLogToolStripMenuItem.Checked = (bool)Gui.Config["Log"];
-				viewScriptToolStripMenuItem.Checked = (bool)Gui.Config["Script"];
-
-				dockingToolStripMenuItem_CheckedChanged(null, null);
 
 				KeysConverter conv = new KeysConverter();
 				foreach (var tool in PluginManager.Tools)
 				{
 					ToolStripMenuItem item = new ToolStripMenuItem(tool[1], null, new EventHandler(OpenTool));
 					item.Tag = tool[0];
-					if (tool[2] != null)
-					{
-						try
-						{
-							item.ShortcutKeys = (Keys)conv.ConvertFromString(tool[2]);
-						}
-						catch { }
-					}
+					item.ShortcutKeys = (Keys)conv.ConvertFromString(tool[2]);
 					toolsToolStripMenuItem.DropDownItems.Add(item);
 				}
 
@@ -441,7 +410,6 @@ namespace SB3Utility
 						defaultDock.Hide();
 					}
 				}
-				SetDocking(content, dockingToolStripMenuItem.Checked);
 
 				if (category != ContentCategory.None)
 				{
@@ -460,7 +428,6 @@ namespace SB3Utility
 			{
 				DockContent dock = (DockContent)sender;
 				dock.FormClosed -= content_FormClosed;
-				dock.Focus();
 
 				List<DockContent> typeList = DockContents[dock.GetType()];
 				typeList.Remove(dock);
@@ -681,7 +648,6 @@ namespace SB3Utility
 		{
 			try
 			{
-				Gui.Config["Image"] = viewImageToolStripMenuItem.Checked;
 				SetDockPaneVisible(DockImage, viewImageToolStripMenuItem);
 			}
 			catch (Exception ex)
@@ -694,7 +660,6 @@ namespace SB3Utility
 		{
 			try
 			{
-				Gui.Config["Renderer"] = viewRendererToolStripMenuItem.Checked;
 				SetDockPaneVisible(DockRenderer, viewRendererToolStripMenuItem);
 			}
 			catch (Exception ex)
@@ -707,7 +672,6 @@ namespace SB3Utility
 		{
 			try
 			{
-				Gui.Config["Log"] = viewLogToolStripMenuItem.Checked;
 				SetDockPaneVisible(DockLog, viewLogToolStripMenuItem);
 			}
 			catch (Exception ex)
@@ -720,7 +684,6 @@ namespace SB3Utility
 		{
 			try
 			{
-				Gui.Config["Script"] = viewScriptToolStripMenuItem.Checked;
 				SetDockPaneVisible(DockScript, viewScriptToolStripMenuItem);
 			}
 			catch (Exception ex)
@@ -748,10 +711,6 @@ namespace SB3Utility
 					foreach (DockContent content in defaultDock.Pane.Contents)
 					{
 						content.Show();
-						if (content.Width == 0)
-						{
-							content.IsFloat = true;
-						}
 					}
 				}
 				else
@@ -768,156 +727,48 @@ namespace SB3Utility
 
 		private void eulerFilterToolStripMenuItem_CheckChanged(object sender, EventArgs e)
 		{
-			try
-			{
-				Properties.Settings.Default["FbxExportAnimationEulerFilter"] = eulerFilterToolStripMenuItem.Checked;
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
+			Properties.Settings.Default["FbxExportAnimationEulerFilter"] = eulerFilterToolStripMenuItem.Checked;
 		}
 
 		private void toolStripEditTextBoxFilterPrecision_AfterEditTextChanged(object sender, EventArgs e)
 		{
-			try
-			{
-				Properties.Settings.Default["FbxExportAnimationFilterPrecision"] = Single.Parse(toolStripEditTextBoxFilterPrecision.Text);
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
+			Properties.Settings.Default["FbxExportAnimationFilterPrecision"] = Single.Parse(toolStripEditTextBoxFilterPrecision.Text);
 		}
 
 		private void negateQuaternionFlipsToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
 		{
-			try
-			{
-				Properties.Settings.Default["FbxImportAnimationNegateQuaternionFlips"] = negateQuaternionFlipsToolStripMenuItem.Checked;
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
-		}
-
-		void forceTypeSampledToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
-		{
-			try
-			{
-				Properties.Settings.Default["FbxImportAnimationForceTypeSampled"] = forceTypeSampledToolStripMenuItem.Checked;
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
-		}
-
-		void toolStripEditTextBoxMQOImportVertexScaling_AfterEditTextChanged(object sender, EventArgs e)
-		{
-			try
-			{
-				Properties.Settings.Default["MQOImportVertexScaling"] = Single.Parse(toolStripEditTextBoxMQOImportVertexScaling.Text);
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
+			Properties.Settings.Default["FbxImportAnimationNegateQuaternionFlips"] = negateQuaternionFlipsToolStripMenuItem.Checked;
 		}
 
 		private void toolStripEditTextBoxSwapThesholdMB_AfterEditTextChanged(object sender, EventArgs e)
 		{
-			try
-			{
-				Properties.Settings.Default["PrivateMemSwapThresholdMB"] = long.Parse(toolStripEditTextBoxSwapThesholdMB.Text);
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
+			Properties.Settings.Default["PrivateMemSwapThresholdMB"] = long.Parse(toolStripEditTextBoxSwapThesholdMB.Text);
 		}
 
 		private void toolStripEditTextBoxTreeViews_AfterEditTextChanged(object sender, EventArgs e)
 		{
-			try
-			{
-				Properties.Settings.Default["TreeViewFontSize"] = Single.Parse(toolStripEditTextBoxTreeViews.Text);
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
+			Properties.Settings.Default["TreeViewFontSize"] = Single.Parse(toolStripEditTextBoxTreeViews.Text);
 		}
 
 		private void toolStripEditTextBoxListViews_AfterEditTextChanged(object sender, EventArgs e)
 		{
-			try
-			{
-				Properties.Settings.Default["ListViewFontSize"] = Single.Parse(toolStripEditTextBoxListViews.Text);
-			}
-			catch (Exception ex)
-			{
-				Utility.ReportException(ex);
-			}
+			Properties.Settings.Default["ListViewFontSize"] = Single.Parse(toolStripEditTextBoxListViews.Text);
 		}
 
 		private void definedVariablesToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			StringBuilder vars = new StringBuilder();
-			foreach (var pair in Gui.Scripting.Variables)
+			string vars = string.Empty;
+			foreach (string var in Gui.Scripting.Variables.Keys)
 			{
-				if (vars.Length != 0)
-				{
-					vars.Append("\r\n");
-				}
-				if (pair.Value != null)
-				{
-					vars.Append(pair.Value.GetType()).Append(" ");
-				}
-				vars.Append(pair.Key);
+				vars += vars.Length == 0 ? var : ", " + var;
 			}
-			Report.ReportLog("defined variables=" + (vars.Length > 0 ? vars.ToString() : "none"));
+			Report.ReportLog("defined variables=" + (vars.Length > 0 ? vars : "none"));
 		}
 
 		private void MDIParent_ResizeEnd(object sender, EventArgs e)
 		{
 			Properties.Settings.Default["LeftTop"] = this.Location;
 			Properties.Settings.Default["WidthHeight"] = this.Size;
-		}
-
-		void dockingToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
-		{
-			Gui.Config["Docking"] = dockingToolStripMenuItem.Checked;
-			SetDocking(Gui.Docking.DockQuickAccess, dockingToolStripMenuItem.Checked);
-			SetDocking(Gui.Docking.DockFiles, dockingToolStripMenuItem.Checked);
-			SetDocking(Gui.Docking.DockEditors, dockingToolStripMenuItem.Checked);
-			SetDocking(Gui.Docking.DockImage, dockingToolStripMenuItem.Checked);
-			SetDocking(Gui.Docking.DockRenderer, dockingToolStripMenuItem.Checked);
-			SetDocking(Gui.Docking.DockLog, dockingToolStripMenuItem.Checked);
-			SetDocking(Gui.Docking.DockScript, dockingToolStripMenuItem.Checked);
-
-			foreach (var pair in Gui.Docking.DockContents)
-			{
-				foreach (DockContent content in pair.Value)
-				{
-					SetDocking(content, dockingToolStripMenuItem.Checked);
-				}
-			}
-		}
-
-		void SetDocking(DockContent content, bool enable)
-		{
-			content.PanelPane.AllowDockDragAndDrop = enable;
-			if (enable)
-			{
-				content.DockAreas |= DockAreas.Float;
-			}
-			else
-			{
-				content.IsFloat = false;
-				content.DockAreas &= ~DockAreas.Float;
-			}
 		}
 	}
 }

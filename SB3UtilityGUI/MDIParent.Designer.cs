@@ -59,19 +59,13 @@
 			this.viewScriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.definedVariablesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.optionsDockingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.pluginsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.fbxAnimationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.importOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.negateQuaternionFlipsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.forceTypeSampledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-			this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.eulerFilterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.filterPrecisionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripEditTextBoxFilterPrecision = new SB3Utility.ToolStripEditTextBox();
-			this.mQOImportVertexScalingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.toolStripEditTextBoxMQOImportVertexScaling = new SB3Utility.ToolStripEditTextBox();
+			this.negateQuaternionFlipsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.swapThresholdMBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripEditTextBoxSwapThesholdMB = new SB3Utility.ToolStripEditTextBox();
 			this.textSizesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -79,7 +73,6 @@
 			this.toolStripEditTextBoxTreeViews = new SB3Utility.ToolStripEditTextBox();
 			this.listViewsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.toolStripEditTextBoxListViews = new SB3Utility.ToolStripEditTextBox();
-			this.dockingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.windowsMenu = new System.Windows.Forms.ToolStripMenuItem();
 			this.helpMenu = new System.Windows.Forms.ToolStripMenuItem();
 			this.contentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -89,6 +82,9 @@
 			this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.dockPanel = new WeifenLuo.WinFormsUI.Docking.DockPanel();
 			this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+			this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+			this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.importOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.menuStrip.SuspendLayout();
 			this.statusStrip.SuspendLayout();
 			this.SuspendLayout();
@@ -99,7 +95,7 @@
             this.fileMenu,
             this.viewToolStripMenuItem,
             this.toolsToolStripMenuItem,
-            this.optionsDockingToolStripMenuItem,
+            this.optionsToolStripMenuItem,
             this.windowsMenu,
             this.helpMenu});
 			this.menuStrip.Location = new System.Drawing.Point(0, 0);
@@ -126,20 +122,20 @@
 			this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
 			this.openToolStripMenuItem.Name = "openToolStripMenuItem";
 			this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-			this.openToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+			this.openToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.openToolStripMenuItem.Text = "&Open";
 			this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenFile);
 			// 
 			// toolStripSeparator3
 			// 
 			this.toolStripSeparator3.Name = "toolStripSeparator3";
-			this.toolStripSeparator3.Size = new System.Drawing.Size(137, 6);
+			this.toolStripSeparator3.Size = new System.Drawing.Size(149, 6);
 			// 
 			// exitToolStripMenuItem
 			// 
 			this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
 			this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-			this.exitToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+			this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.exitToolStripMenuItem.Text = "E&xit";
 			this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolsStripMenuItem_Click);
 			// 
@@ -161,49 +157,49 @@
 			// 
 			this.viewQuickAccessToolStripMenuItem.CheckOnClick = true;
 			this.viewQuickAccessToolStripMenuItem.Name = "viewQuickAccessToolStripMenuItem";
-			this.viewQuickAccessToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+			this.viewQuickAccessToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.viewQuickAccessToolStripMenuItem.Text = "&Quick Access";
 			// 
 			// viewFilesToolStripMenuItem
 			// 
 			this.viewFilesToolStripMenuItem.CheckOnClick = true;
 			this.viewFilesToolStripMenuItem.Name = "viewFilesToolStripMenuItem";
-			this.viewFilesToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+			this.viewFilesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.viewFilesToolStripMenuItem.Text = "&Files";
 			// 
 			// viewEditorsToolStripMenuItem
 			// 
 			this.viewEditorsToolStripMenuItem.CheckOnClick = true;
 			this.viewEditorsToolStripMenuItem.Name = "viewEditorsToolStripMenuItem";
-			this.viewEditorsToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+			this.viewEditorsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.viewEditorsToolStripMenuItem.Text = "&Editors";
 			// 
 			// viewImageToolStripMenuItem
 			// 
 			this.viewImageToolStripMenuItem.CheckOnClick = true;
 			this.viewImageToolStripMenuItem.Name = "viewImageToolStripMenuItem";
-			this.viewImageToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
-			this.viewImageToolStripMenuItem.Text = "&Image Previews";
+			this.viewImageToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.viewImageToolStripMenuItem.Text = "&Image";
 			// 
 			// viewRendererToolStripMenuItem
 			// 
 			this.viewRendererToolStripMenuItem.CheckOnClick = true;
 			this.viewRendererToolStripMenuItem.Name = "viewRendererToolStripMenuItem";
-			this.viewRendererToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+			this.viewRendererToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.viewRendererToolStripMenuItem.Text = "&Renderer";
 			// 
 			// viewLogToolStripMenuItem
 			// 
 			this.viewLogToolStripMenuItem.CheckOnClick = true;
 			this.viewLogToolStripMenuItem.Name = "viewLogToolStripMenuItem";
-			this.viewLogToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+			this.viewLogToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.viewLogToolStripMenuItem.Text = "&Log";
 			// 
 			// viewScriptToolStripMenuItem
 			// 
 			this.viewScriptToolStripMenuItem.CheckOnClick = true;
 			this.viewScriptToolStripMenuItem.Name = "viewScriptToolStripMenuItem";
-			this.viewScriptToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+			this.viewScriptToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.viewScriptToolStripMenuItem.Text = "&Script";
 			// 
 			// toolsToolStripMenuItem
@@ -221,23 +217,21 @@
 			this.definedVariablesToolStripMenuItem.Text = "Defined &Variables";
 			this.definedVariablesToolStripMenuItem.Click += new System.EventHandler(this.definedVariablesToolStripMenuItem_Click);
 			// 
-			// optionsDockingToolStripMenuItem
+			// optionsToolStripMenuItem
 			// 
-			this.optionsDockingToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+			this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.pluginsToolStripMenuItem,
             this.fbxAnimationToolStripMenuItem,
-            this.mQOImportVertexScalingToolStripMenuItem,
             this.swapThresholdMBToolStripMenuItem,
-            this.textSizesToolStripMenuItem,
-            this.dockingToolStripMenuItem});
-			this.optionsDockingToolStripMenuItem.Name = "optionsDockingToolStripMenuItem";
-			this.optionsDockingToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
-			this.optionsDockingToolStripMenuItem.Text = "&Options";
+            this.textSizesToolStripMenuItem});
+			this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
+			this.optionsToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
+			this.optionsToolStripMenuItem.Text = "&Options";
 			// 
 			// pluginsToolStripMenuItem
 			// 
 			this.pluginsToolStripMenuItem.Name = "pluginsToolStripMenuItem";
-			this.pluginsToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
+			this.pluginsToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
 			this.pluginsToolStripMenuItem.Text = "&Plugins";
 			this.pluginsToolStripMenuItem.Click += new System.EventHandler(this.settingsPluginsToolStripMenuItem_Click);
 			// 
@@ -246,60 +240,20 @@
 			this.fbxAnimationToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.importOptionsToolStripMenuItem,
             this.negateQuaternionFlipsToolStripMenuItem,
-            this.forceTypeSampledToolStripMenuItem,
             this.toolStripSeparator1,
             this.exportToolStripMenuItem,
             this.eulerFilterToolStripMenuItem,
             this.filterPrecisionToolStripMenuItem});
 			this.fbxAnimationToolStripMenuItem.Name = "fbxAnimationToolStripMenuItem";
-			this.fbxAnimationToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
+			this.fbxAnimationToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
 			this.fbxAnimationToolStripMenuItem.Text = "Fbx Animation";
-			// 
-			// importOptionsToolStripMenuItem
-			// 
-			this.importOptionsToolStripMenuItem.Enabled = false;
-			this.importOptionsToolStripMenuItem.Image = global::SB3Utility.Properties.Resources.openToolStripMenuItem;
-			this.importOptionsToolStripMenuItem.Name = "importOptionsToolStripMenuItem";
-			this.importOptionsToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
-			this.importOptionsToolStripMenuItem.Text = "Import Options";
-			// 
-			// negateQuaternionFlipsToolStripMenuItem
-			// 
-			this.negateQuaternionFlipsToolStripMenuItem.CheckOnClick = true;
-			this.negateQuaternionFlipsToolStripMenuItem.Name = "negateQuaternionFlipsToolStripMenuItem";
-			this.negateQuaternionFlipsToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
-			this.negateQuaternionFlipsToolStripMenuItem.Text = "Negate Quaternion Flips";
-			// 
-			// forceTypeSampledToolStripMenuItem
-			// 
-			this.forceTypeSampledToolStripMenuItem.Checked = true;
-			this.forceTypeSampledToolStripMenuItem.CheckOnClick = true;
-			this.forceTypeSampledToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.forceTypeSampledToolStripMenuItem.Name = "forceTypeSampledToolStripMenuItem";
-			this.forceTypeSampledToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
-			this.forceTypeSampledToolStripMenuItem.Text = "Force Type: Sampled";
-			this.forceTypeSampledToolStripMenuItem.ToolTipText = "Overrides automatic type check to always import animations\r\nwith keyframe reducti" +
-    "on and incomplete keyframes.";
-			// 
-			// toolStripSeparator1
-			// 
-			this.toolStripSeparator1.Name = "toolStripSeparator1";
-			this.toolStripSeparator1.Size = new System.Drawing.Size(209, 6);
-			// 
-			// exportToolStripMenuItem
-			// 
-			this.exportToolStripMenuItem.Enabled = false;
-			this.exportToolStripMenuItem.Image = global::SB3Utility.Properties.Resources.saveToolStripMenuItem;
-			this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-			this.exportToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
-			this.exportToolStripMenuItem.Text = "Export/Replacement Options";
-			this.exportToolStripMenuItem.ToolTipText = "Used in FBX export and in Animation replacement";
 			// 
 			// eulerFilterToolStripMenuItem
 			// 
+			this.eulerFilterToolStripMenuItem.Checked = global::SB3Utility.Properties.Settings.Default.FbxExportAnimationEulerFilter;
 			this.eulerFilterToolStripMenuItem.CheckOnClick = true;
 			this.eulerFilterToolStripMenuItem.Name = "eulerFilterToolStripMenuItem";
-			this.eulerFilterToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+			this.eulerFilterToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
 			this.eulerFilterToolStripMenuItem.Text = "Euler Filter";
 			// 
 			// filterPrecisionToolStripMenuItem
@@ -307,7 +261,7 @@
 			this.filterPrecisionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripEditTextBoxFilterPrecision});
 			this.filterPrecisionToolStripMenuItem.Name = "filterPrecisionToolStripMenuItem";
-			this.filterPrecisionToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+			this.filterPrecisionToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
 			this.filterPrecisionToolStripMenuItem.Text = "Filter Precision";
 			// 
 			// toolStripEditTextBoxFilterPrecision
@@ -316,26 +270,21 @@
 			this.toolStripEditTextBoxFilterPrecision.Size = new System.Drawing.Size(50, 21);
 			this.toolStripEditTextBoxFilterPrecision.Text = "0.25";
 			// 
-			// mQOImportVertexScalingToolStripMenuItem
+			// negateQuaternionFlipsToolStripMenuItem
 			// 
-			this.mQOImportVertexScalingToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripEditTextBoxMQOImportVertexScaling});
-			this.mQOImportVertexScalingToolStripMenuItem.Name = "mQOImportVertexScalingToolStripMenuItem";
-			this.mQOImportVertexScalingToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
-			this.mQOImportVertexScalingToolStripMenuItem.Text = "MQO Import Vertex Scaling";
-			// 
-			// toolStripEditTextBoxMQOImportVertexScaling
-			// 
-			this.toolStripEditTextBoxMQOImportVertexScaling.Name = "toolStripEditTextBoxMQOImportVertexScaling";
-			this.toolStripEditTextBoxMQOImportVertexScaling.Size = new System.Drawing.Size(50, 21);
-			this.toolStripEditTextBoxMQOImportVertexScaling.Text = "10";
+			this.negateQuaternionFlipsToolStripMenuItem.Checked = global::SB3Utility.Properties.Settings.Default.FbxImportAnimationNegateQuaternionFlips;
+			this.negateQuaternionFlipsToolStripMenuItem.CheckOnClick = true;
+			this.negateQuaternionFlipsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.negateQuaternionFlipsToolStripMenuItem.Name = "negateQuaternionFlipsToolStripMenuItem";
+			this.negateQuaternionFlipsToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+			this.negateQuaternionFlipsToolStripMenuItem.Text = "Negate Quaternion Flips";
 			// 
 			// swapThresholdMBToolStripMenuItem
 			// 
 			this.swapThresholdMBToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripEditTextBoxSwapThesholdMB});
 			this.swapThresholdMBToolStripMenuItem.Name = "swapThresholdMBToolStripMenuItem";
-			this.swapThresholdMBToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
+			this.swapThresholdMBToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
 			this.swapThresholdMBToolStripMenuItem.Text = "&Swap Threshold MB";
 			this.swapThresholdMBToolStripMenuItem.ToolTipText = "The threshold is checked when closing editors.";
 			// 
@@ -352,7 +301,7 @@
             this.treeViewToolStripMenuItem,
             this.listViewsToolStripMenuItem});
 			this.textSizesToolStripMenuItem.Name = "textSizesToolStripMenuItem";
-			this.textSizesToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
+			this.textSizesToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
 			this.textSizesToolStripMenuItem.Text = "&Text Sizes";
 			// 
 			// treeViewToolStripMenuItem
@@ -360,7 +309,7 @@
 			this.treeViewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripEditTextBoxTreeViews});
 			this.treeViewToolStripMenuItem.Name = "treeViewToolStripMenuItem";
-			this.treeViewToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+			this.treeViewToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.treeViewToolStripMenuItem.Text = "TreeViews";
 			// 
 			// toolStripEditTextBoxTreeViews
@@ -374,7 +323,7 @@
 			this.listViewsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripEditTextBoxListViews});
 			this.listViewsToolStripMenuItem.Name = "listViewsToolStripMenuItem";
-			this.listViewsToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
+			this.listViewsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.listViewsToolStripMenuItem.Text = "ListViews";
 			// 
 			// toolStripEditTextBoxListViews
@@ -382,14 +331,6 @@
 			this.toolStripEditTextBoxListViews.Name = "toolStripEditTextBoxListViews";
 			this.toolStripEditTextBoxListViews.Size = new System.Drawing.Size(50, 21);
 			this.toolStripEditTextBoxListViews.Text = "0";
-			// 
-			// dockingToolStripMenuItem
-			// 
-			this.dockingToolStripMenuItem.CheckOnClick = true;
-			this.dockingToolStripMenuItem.Name = "dockingToolStripMenuItem";
-			this.dockingToolStripMenuItem.Size = new System.Drawing.Size(204, 22);
-			this.dockingToolStripMenuItem.Text = "&Docking";
-			this.dockingToolStripMenuItem.ToolTipText = "Locks layout when disabled";
 			// 
 			// windowsMenu
 			// 
@@ -497,13 +438,34 @@
 			dockPaneStripToolWindowGradient1.InactiveTabGradient = tabGradient7;
 			dockPaneStripSkin1.ToolWindowGradient = dockPaneStripToolWindowGradient1;
 			dockPanelSkin1.DockPaneStripSkin = dockPaneStripSkin1;
-			//this.dockPanel.Skin = dockPanelSkin1;
+			this.dockPanel.Skin = dockPanelSkin1;
 			this.dockPanel.TabIndex = 4;
 			// 
 			// openFileDialog1
 			// 
 			this.openFileDialog1.Multiselect = true;
 			this.openFileDialog1.RestoreDirectory = true;
+			// 
+			// toolStripSeparator1
+			// 
+			this.toolStripSeparator1.Name = "toolStripSeparator1";
+			this.toolStripSeparator1.Size = new System.Drawing.Size(187, 6);
+			// 
+			// exportToolStripMenuItem
+			// 
+			this.exportToolStripMenuItem.Enabled = false;
+			this.exportToolStripMenuItem.Image = global::SB3Utility.Properties.Resources.saveToolStripMenuItem;
+			this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
+			this.exportToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+			this.exportToolStripMenuItem.Text = "Export Options";
+			// 
+			// importOptionsToolStripMenuItem
+			// 
+			this.importOptionsToolStripMenuItem.Enabled = false;
+			this.importOptionsToolStripMenuItem.Image = global::SB3Utility.Properties.Resources.openToolStripMenuItem;
+			this.importOptionsToolStripMenuItem.Name = "importOptionsToolStripMenuItem";
+			this.importOptionsToolStripMenuItem.Size = new System.Drawing.Size(190, 22);
+			this.importOptionsToolStripMenuItem.Text = "Import Options";
 			// 
 			// MDIParent
 			// 
@@ -548,7 +510,7 @@
 		private System.Windows.Forms.ToolStripMenuItem helpMenu;
 		private System.Windows.Forms.ToolStripMenuItem contentsToolStripMenuItem;
 		private WeifenLuo.WinFormsUI.Docking.DockPanel dockPanel;
-		private System.Windows.Forms.ToolStripMenuItem optionsDockingToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem pluginsToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem viewFilesToolStripMenuItem;
@@ -576,10 +538,6 @@
 		private System.Windows.Forms.ToolStripMenuItem importOptionsToolStripMenuItem;
 		private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
 		private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem forceTypeSampledToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem mQOImportVertexScalingToolStripMenuItem;
-		private ToolStripEditTextBox toolStripEditTextBoxMQOImportVertexScaling;
-		private System.Windows.Forms.ToolStripMenuItem dockingToolStripMenuItem;
 	}
 }
 
