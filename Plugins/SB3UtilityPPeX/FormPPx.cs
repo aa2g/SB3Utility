@@ -712,9 +712,9 @@ namespace SB3Utility
 			{
 				if (e.IsSelected)
 				{
-					IReadFile subfile = (IReadFile)e.Item.Tag;
+					ISubfile subfile = (ISubfile)e.Item.Tag;
 					ImportedTexture image;
-					string stream = EditorVar + ".ReadSubfile(name=\"" + subfile.Name + "\")";
+					string stream = $"{EditorVar}.ReadSubfile(name=\"{subfile.EmulatedName}\", archiveName=\"{subfile.EmulatedArchiveName}\")";
 
 					if (Path.GetExtension(subfile.Name).ToLowerInvariant() == ".ema")
 					{
